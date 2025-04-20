@@ -7,20 +7,71 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { supabase } from '../lib/supabase';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = () => {
-    console.log('Sign up with:', email, password);
-    router.replace('/(tabs)');
+  const handleSignUp = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    if (!fullName.trim()) {
+      Alert.alert('Error', 'Please enter your full name');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: 'iWetMyPlants://login-callback',
+          data: {
+            full_name: fullName.trim(),
+          },
+        },
+      });
+
+      if (error) throw error;
+      Alert.alert('Success', 'Check your email for the confirmation link!');
+      router.replace('/login');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'iWetMyPlants://login-callback',
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,10 +84,23 @@ export default function SignUpScreen() {
 
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
+            <Ionicons name="person-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Full Name"
+              placeholderTextColor="#666"
+              value={fullName}
+              onChangeText={setFullName}
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
             <Ionicons name="mail-outline" size={22} color="#76A97F" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Email"
+              placeholderTextColor="#666"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -49,6 +113,7 @@ export default function SignUpScreen() {
             <TextInput
               style={styles.input}
               placeholder="Password"
+              placeholderTextColor="#666"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -70,6 +135,7 @@ export default function SignUpScreen() {
             <TextInput
               style={styles.input}
               placeholder="Confirm Password"
+              placeholderTextColor="#666"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
@@ -86,15 +152,23 @@ export default function SignUpScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+          <TouchableOpacity 
+            style={styles.signupButton} 
+            onPress={handleSignUp}
+            disabled={loading}
+          >
             <View style={styles.buttonContent}>
               <Ionicons name="person-add-outline" size={24} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.signupButtonText}>Sign Up</Text>
+              <Text style={styles.signupButtonText}>{loading ? 'Loading...' : 'Sign Up'}</Text>
             </View>
           </TouchableOpacity>
 
           <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={handleGoogleSignUp}
+              disabled={loading}
+            >
               <Ionicons name="logo-google" size={24} color="#DB4437" />
             </TouchableOpacity>
           </View>

@@ -7,18 +7,51 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { supabase } from '../lib/supabase';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log('Login with:', email, password);
-    router.replace('/(tabs)');
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      router.replace('/(tabs)');
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'iWetMyPlants://login-callback',
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,6 +69,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="Email"
+              placeholderTextColor="#666"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -48,6 +82,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="Password"
+              placeholderTextColor="#666"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -68,15 +103,19 @@ export default function LoginScreen() {
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
             <View style={styles.buttonContent}>
               <Ionicons name="log-in-outline" size={24} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.loginButtonText}>Log In</Text>
+              <Text style={styles.loginButtonText}>{loading ? 'Loading...' : 'Log In'}</Text>
             </View>
           </TouchableOpacity>
 
           <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={handleGoogleLogin}
+              disabled={loading}
+            >
               <Ionicons name="logo-google" size={24} color="#DB4437" />
             </TouchableOpacity>
           </View>
