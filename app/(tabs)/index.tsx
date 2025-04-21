@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image } from 'react-native';
+import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
@@ -14,9 +15,11 @@ import { Header } from '@/components/Header';
 type FilterOption = 'Indoor' | 'Outdoor' | 'Both';
 
 export default function HomeScreen() {
-  const { colors } = useTheme();
+  const { colors, setTheme } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('Indoor');
   const [userName, setUserName] = useState<string>('');
+  const [showMenu, setShowMenu] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -104,10 +107,87 @@ export default function HomeScreen() {
           <Header
             name={userName}
             greeting={getGreeting()}
-            onMenuPress={() => {}}
-            onSharePress={() => {}}
+            onMenuPress={() => {
+              if (showMenu || showThemeMenu) {
+                setShowMenu(false);
+                setShowThemeMenu(false);
+              } else {
+                setShowMenu(true);
+              }
+            }}
+            onSharePress={() => {
+              Alert.alert('Share', 'Share this app with your friends!');
+            }}
           />
           
+          {showMenu && (
+            <View style={[styles.menu, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}>
+              <TouchableOpacity
+                style={[styles.menuOption]}
+                onPress={() => {
+                  setShowThemeMenu(true);
+                  setShowMenu(false);
+                }}
+              >
+                <Ionicons name="color-palette-outline" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.menuOptionText, { color: colors.text }]}>Themes</ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {showThemeMenu && (
+            <View style={[styles.themeMenu, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}>
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => { setTheme('light'); setShowThemeMenu(false); }}
+              >
+                <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Light</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => { setTheme('dark'); setShowThemeMenu(false); }}
+              >
+                <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Dark</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => { setTheme('spring'); setShowThemeMenu(false); }}
+              >
+                <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Spring</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => { setTheme('summer'); setShowThemeMenu(false); }}
+              >
+                <Ionicons name="sunny" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Summer</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => { setTheme('autumn'); setShowThemeMenu(false); }}
+              >
+                <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Autumn</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => { setTheme('winter'); setShowThemeMenu(false); }}
+              >
+                <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.menuIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Winter</ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <ScrollView 
             style={styles.scrollView} 
             showsVerticalScrollIndicator={false}
@@ -209,5 +289,56 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     marginBottom: 8,
+  },
+  menu: {
+    position: 'absolute',
+    top: 120,
+    right: 20,
+    width: 150,
+    borderRadius: 10,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+    zIndex: 1000,
+  },
+  themeMenu: {
+    position: 'absolute',
+    top: 160,
+    right: 20,
+    width: 150,
+    borderRadius: 10,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'hidden',
+    zIndex: 1000,
+  },
+  menuOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+  },
+  menuIcon: {
+    marginRight: 10,
+  },
+  menuOptionText: {
+    fontSize: 16,
+  },
+  themeOptionText: {
+    fontSize: 16,
   },
 });
