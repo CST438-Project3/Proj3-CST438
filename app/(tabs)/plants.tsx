@@ -50,7 +50,7 @@ export default function PlantsScreen() {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background + '80' }]} edges={['top']}>
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerContent}>
-              <View style={[styles.logoContainer, { backgroundColor: colors.card }]}>
+              <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
                 <Image 
                   source={require('@/assets/images/iWetMyPlants Logo.png')} 
                   style={styles.logo}

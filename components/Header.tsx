@@ -17,7 +17,7 @@ export function Header({ name, greeting, onMenuPress, onSharePress }: HeaderProp
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        <View style={[styles.logoContainer, { backgroundColor: colors.card }]}>
+        <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
           <Image 
             source={require('@/assets/images/iWetMyPlants Logo.png')} 
             style={styles.logo}
