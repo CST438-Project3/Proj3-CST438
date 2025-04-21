@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground, Pressable } from 'react-native';
+import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -200,5 +200,14 @@ const styles = StyleSheet.create({
   },
   plantCard: {
     flex: 1,
+  },
+  header: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 8,
   },
 });

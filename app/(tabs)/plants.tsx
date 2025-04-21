@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground } from 'react-native';
+import { ScrollView, StyleSheet, View, ImageBackground, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
@@ -49,7 +49,16 @@ export default function PlantsScreen() {
       >
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background + '80' }]} edges={['top']}>
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
-            <ThemedText style={[styles.title, { color: colors.text }]}>My Plants</ThemedText>
+            <View style={styles.headerContent}>
+              <View style={[styles.logoContainer, { backgroundColor: colors.card }]}>
+                <Image 
+                  source={require('@/assets/images/iWetMyPlants Logo.png')} 
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+              <ThemedText style={[styles.title, { color: colors.text }]}>My Plants</ThemedText>
+            </View>
           </View>
           
           <ScrollView 
@@ -88,6 +97,27 @@ const styles = StyleSheet.create({
   header: {
     padding: 16,
     borderBottomWidth: 1,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  logo: {
+    width: 36,
+    height: 36,
   },
   title: {
     fontSize: 24,

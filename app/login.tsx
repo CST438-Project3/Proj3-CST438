@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -72,7 +73,6 @@ export default function LoginScreen() {
       setShowThemeMenu(false);
     }}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Theme Menu */}
         <View style={styles.themeMenuContainer}>
           <TouchableOpacity
             style={[styles.themeButton, { backgroundColor: colors.card }]}
@@ -112,8 +112,13 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.headerContainer}>
-          <Text style={[styles.welcomeText, { color: colors.text }]}>Welcome to</Text>
-          <Text style={[styles.appNameText, { color: colors.primary }]}>iWetMyPlants</Text>
+          <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
+            <Image 
+              source={require('@/assets/images/iWetMyPlants Logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={[styles.taglineText, { color: colors.text }]}>Your personal plant care companion</Text>
         </View>
 
@@ -216,19 +221,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  welcomeText: {
-    fontSize: 18,
-    color: '#666',
+  logoContainer: {
+    width: 160,
+    height: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 16,
   },
-  appNameText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#76A97F',
-    marginBottom: 8,
+  logo: {
+    width: 160,
+    height: 160,
   },
   taglineText: {
     fontSize: 16,
-    color: '#666',
     fontStyle: 'italic',
   },
   formContainer: {
@@ -313,15 +324,14 @@ const styles = StyleSheet.create({
   },
   themeMenuContainer: {
     position: 'absolute',
-    top: 40,
-    right: 20,
+    top: 60,
+    left: 20,
     zIndex: 1000,
   },
   themeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -333,7 +343,7 @@ const styles = StyleSheet.create({
   themeDropdown: {
     position: 'absolute',
     top: 45,
-    right: 0,
+    left: 0,
     backgroundColor: '#FFFFFF',
     borderRadius: 15,
     padding: 8,
@@ -344,7 +354,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#eee',
   },
   themeOption: {
     padding: 10,
