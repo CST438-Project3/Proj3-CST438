@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
+import { useTheme } from '@/lib/ThemeContext';
 
 type Profile = {
   id: string;
@@ -26,6 +27,7 @@ type Profile = {
 };
 
 export default function ProfileScreen() {
+  const { colors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -300,14 +302,14 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#76A97F" />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+    <ScrollView style={[styles.scrollContainer, { backgroundColor: colors.background }]} contentContainerStyle={styles.scrollContent}>
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity 
@@ -316,8 +318,8 @@ export default function ProfileScreen() {
             disabled={uploading}
           >
             {uploading ? (
-              <View style={styles.avatarPlaceholder}>
-                <ActivityIndicator size="large" color="#76A97F" />
+              <View style={[styles.avatarPlaceholder, { backgroundColor: colors.card, borderColor: colors.primary }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
               </View>
             ) : localImagePath ? (
               <Image
@@ -348,40 +350,40 @@ export default function ProfileScreen() {
                 }}
               />
             ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={50} color="#76A97F" />
+              <View style={[styles.avatarPlaceholder, { backgroundColor: colors.card, borderColor: colors.primary }]}>
+                <Ionicons name="person" size={50} color={colors.primary} />
               </View>
             )}
-            <View style={styles.editOverlay}>
+            <View style={[styles.editOverlay, { backgroundColor: colors.primary, borderColor: colors.card }]}>
               {uploading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.card} />
               ) : (
-                <Ionicons name="camera" size={24} color="#fff" />
+                <Ionicons name="camera" size={24} color={colors.card} />
               )}
             </View>
           </TouchableOpacity>
-          <Text style={styles.name}>{profile?.full_name || 'No name set'}</Text>
-          <Text style={styles.email}>{profile?.email}</Text>
+          <Text style={[styles.name, { color: colors.text }]}>{profile?.full_name || 'No name set'}</Text>
+          <Text style={[styles.email, { color: colors.text + '80' }]}>{profile?.email}</Text>
           {profile?.avatar_url && (
             <TouchableOpacity 
               style={styles.removeAvatarButton}
               onPress={removeAvatar}
               disabled={uploading}
             >
-              <Text style={styles.removeAvatarText}>Remove Photo</Text>
+              <Text style={[styles.removeAvatarText, { color: colors.accent }]}>Remove Photo</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="settings-outline" size={24} color="#76A97F" />
-            <Text style={styles.buttonText}>Settings</Text>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <TouchableOpacity style={[styles.button, { borderBottomColor: colors.border }]}>
+            <Ionicons name="settings-outline" size={24} color={colors.primary} />
+            <Text style={[styles.buttonText, { color: colors.text }]}>Settings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button}>
-            <Ionicons name="help-circle-outline" size={24} color="#76A97F" />
-            <Text style={styles.buttonText}>Help & Support</Text>
+          <TouchableOpacity style={[styles.button, { borderBottomColor: colors.border }]}>
+            <Ionicons name="help-circle-outline" size={24} color={colors.primary} />
+            <Text style={[styles.buttonText, { color: colors.text }]}>Help & Support</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.button, styles.lastButton]} onPress={signOut}>
@@ -397,14 +399,12 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
-    backgroundColor: '#f2f2e5',
   },
   scrollContent: {
     flexGrow: 1,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#f2f2e5',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -436,24 +436,19 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#76A97F',
   },
   name: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   email: {
     fontSize: 16,
-    color: '#666',
   },
   section: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
     marginTop: 20,
@@ -468,7 +463,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   lastButton: {
     borderBottomWidth: 0,
@@ -476,7 +470,6 @@ const styles = StyleSheet.create({
   buttonText: {
     marginLeft: 15,
     fontSize: 16,
-    color: '#333',
   },
   signOutText: {
     color: '#DB4437',
@@ -485,21 +478,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#76A97F',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
   },
   removeAvatarButton: {
     marginTop: 10,
     padding: 8,
   },
   removeAvatarText: {
-    color: '#DB4437',
     fontSize: 14,
     fontWeight: '500',
   },

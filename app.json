@@ -8,6 +8,9 @@
     "scheme": "plantgainz",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "developmentClient": {
+      "silentLaunch": true
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.cst438.plantgainz"

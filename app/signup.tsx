@@ -17,7 +17,7 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,28 +28,40 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (!fullName.trim()) {
-      Alert.alert('Error', 'Please enter your full name');
+    if (!firstName.trim()) {
+      Alert.alert('Error', 'Please enter your first name');
       return;
     }
 
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: 'iWetMyPlants://login-callback',
-          data: {
-            full_name: fullName.trim(),
-          },
         },
       });
 
-      if (error) throw error;
+      if (signUpError) throw signUpError;
+
+      if (user) {
+        // Create a profile for the new user
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: user.id,
+              first_name: firstName.trim(),
+            },
+          ]);
+
+        if (profileError) throw profileError;
+      }
+
       Alert.alert('Success', 'Check your email for the confirmation link!');
       router.replace('/login');
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
@@ -67,8 +79,8 @@ export default function SignUpScreen() {
       });
 
       if (error) throw error;
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      Alert.alert('Error', (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -87,10 +99,10 @@ export default function SignUpScreen() {
             <Ionicons name="person-outline" size={22} color="#76A97F" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Full Name"
+              placeholder="First Name"
               placeholderTextColor="#666"
-              value={fullName}
-              onChangeText={setFullName}
+              value={firstName}
+              onChangeText={setFirstName}
               autoCapitalize="words"
             />
           </View>

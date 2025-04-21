@@ -1,18 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, View, ImageBackground, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import { useTheme } from '@/lib/ThemeContext';
 
 import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
 import { RelatedPlantCard } from '@/components/RelatedPlantCard';
 import { FilterTabs } from '@/components/FilterTabs';
-import { Header } from 'react-native/Libraries/NewAppScreen';
+import { Header } from '@/components/Header';
 
 type FilterOption = 'Indoor' | 'Outdoor' | 'Both';
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('Indoor');
+  const [userName, setUserName] = useState<string>('');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Get the user's information from the users table
+        const { data, error } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching user:', error);
+          return;
+        }
+
+        if (data && data.full_name) {
+          setUserName(data.full_name);
+        } else {
+          // If no full_name exists, use email as fallback
+          setUserName(user.email?.split('@')[0] || 'User');
+        }
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const myPlants = [
     {
@@ -62,15 +94,15 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ImageBackground
         source={require('../../assets/images/leaf-background.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background + '80' }]} edges={['top']}>
           <Header
-            name="Hani"
+            name={userName}
             greeting={getGreeting()}
             onMenuPress={() => {}}
             onSharePress={() => {}}
@@ -88,9 +120,12 @@ export default function HomeScreen() {
 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <ThemedText style={styles.sectionTitle}>My Plants</ThemedText>
+                <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>My Plants</ThemedText>
                 <Pressable onPress={() => router.push('/plants')}>
-                  <ThemedText style={styles.viewAll}>View all</ThemedText>
+                  <ThemedText style={[styles.viewAll, { 
+                    color: colors.primary,
+                    backgroundColor: colors.card
+                  }]}>View all</ThemedText>
                 </Pressable>
               </View>
 
@@ -106,7 +141,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>Related Plants</ThemedText>
+              <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Related Plants</ThemedText>
               {relatedPlants.map((plant) => (
                 <RelatedPlantCard
                   key={plant.id}
@@ -132,7 +167,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: 'rgba(248, 248, 248, 0.25)',
   },
   scrollView: {
     flex: 1,
@@ -152,12 +186,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333333',
   },
   viewAll: {
-    color: '#7C9A72',
     fontSize: 14,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,

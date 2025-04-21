@@ -12,12 +12,24 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../lib/supabase';
+import { useTheme, Theme } from '@/lib/ThemeContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const { theme, setTheme, colors } = useTheme();
+
+  const themeOptions: { name: string; value: Theme }[] = [
+    { name: 'Light', value: 'light' },
+    { name: 'Dark', value: 'dark' },
+    { name: 'Spring', value: 'spring' },
+    { name: 'Summer', value: 'summer' },
+    { name: 'Autumn', value: 'autumn' },
+    { name: 'Winter', value: 'winter' },
+  ];
 
   const handleLogin = async () => {
     try {
@@ -29,7 +41,7 @@ export default function LoginScreen() {
 
       if (error) throw error;
       router.replace('/(tabs)');
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
@@ -47,7 +59,7 @@ export default function LoginScreen() {
       });
 
       if (error) throw error;
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
@@ -55,21 +67,66 @@ export default function LoginScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+    <TouchableWithoutFeedback onPress={() => {
+      Keyboard.dismiss();
+      setShowThemeMenu(false);
+    }}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* Theme Menu */}
+        <View style={styles.themeMenuContainer}>
+          <TouchableOpacity
+            style={[styles.themeButton, { backgroundColor: colors.card }]}
+            onPress={() => setShowThemeMenu(!showThemeMenu)}
+          >
+            <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          
+          {showThemeMenu && (
+            <View style={[styles.themeDropdown, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}>
+              {themeOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.themeOption,
+                    theme === option.value && { backgroundColor: colors.accent + '20' }
+                  ]}
+                  onPress={() => {
+                    setTheme(option.value);
+                    setShowThemeMenu(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.themeOptionText,
+                    { color: colors.text },
+                    theme === option.value && { color: colors.primary }
+                  ]}>
+                    {option.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
         <View style={styles.headerContainer}>
-          <Text style={styles.welcomeText}>Welcome to</Text>
-          <Text style={styles.appNameText}>iWetMyPlants</Text>
-          <Text style={styles.taglineText}>Your personal plant care companion</Text>
+          <Text style={[styles.welcomeText, { color: colors.text }]}>Welcome to</Text>
+          <Text style={[styles.appNameText, { color: colors.primary }]}>iWetMyPlants</Text>
+          <Text style={[styles.taglineText, { color: colors.text }]}>Your personal plant care companion</Text>
         </View>
 
         <View style={styles.formContainer}>
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="mail-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Email"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.text + '80'}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -77,12 +134,15 @@ export default function LoginScreen() {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="lock-closed-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Password"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.text + '80'}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -94,41 +154,49 @@ export default function LoginScreen() {
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={22}
-                color="#76A97F"
+                color={colors.primary}
               />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.forgotPasswordContainer}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+          <TouchableOpacity 
+            style={[styles.loginButton, { backgroundColor: colors.primary }]} 
+            onPress={handleLogin} 
+            disabled={loading}
+          >
             <View style={styles.buttonContent}>
-              <Ionicons name="log-in-outline" size={24} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.loginButtonText}>{loading ? 'Loading...' : 'Log In'}</Text>
+              <Ionicons name="log-in-outline" size={24} color={colors.card} style={styles.buttonIcon} />
+              <Text style={[styles.loginButtonText, { color: colors.card }]}>{loading ? 'Loading...' : 'Log In'}</Text>
             </View>
           </TouchableOpacity>
 
-          <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity 
-              style={styles.socialButton}
-              onPress={handleGoogleLogin}
-              disabled={loading}
-            >
-              <Ionicons name="logo-google" size={24} color="#DB4437" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            style={[styles.loginButton, styles.googleButton, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}
+            onPress={handleGoogleLogin}
+            disabled={loading}
+          >
+            <View style={styles.buttonContent}>
+              <Ionicons name="logo-google" size={24} color="#DB4437" style={styles.buttonIcon} />
+              <Text style={[styles.loginButtonText, { color: colors.text }]}>Sign in with Google</Text>
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.signupContainer}>
-            <Text style={styles.noAccountText}>Don't have an account? </Text>
+            <Text style={[styles.noAccountText, { color: colors.text }]}>Don't have an account? </Text>
             <TouchableOpacity 
               style={styles.signupButton}
               onPress={() => router.push('/signup')}
             >
               <View style={styles.buttonContent}>
-                <Ionicons name="person-add-outline" size={18} color="#76A97F" style={styles.buttonIcon} />
-                <Text style={styles.signupText}>Sign Up</Text>
+                <Ionicons name="person-add-outline" size={18} color={colors.primary} style={styles.buttonIcon} />
+                <Text style={[styles.signupText, { color: colors.primary }]}>Sign Up</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -141,7 +209,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2e5',
     padding: 20,
     justifyContent: 'center',
   },
@@ -218,23 +285,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
+  googleButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#76A97F',
   },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+  googleButtonText: {
+    color: '#333333',
   },
   signupContainer: {
     flexDirection: 'row',
@@ -253,5 +310,55 @@ const styles = StyleSheet.create({
     color: '#76A97F',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  themeMenuContainer: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 1000,
+  },
+  themeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  themeDropdown: {
+    position: 'absolute',
+    top: 45,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 8,
+    width: 150,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  themeOption: {
+    padding: 10,
+    borderRadius: 8,
+  },
+  themeOptionSelected: {
+    backgroundColor: '#76A97F20',
+  },
+  themeOptionText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  themeOptionTextSelected: {
+    color: '#76A97F',
+    fontWeight: '600',
   },
 }); 

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Image, ViewStyle } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/lib/ThemeContext';
 
 interface PlantCardProps {
   id: number;
@@ -13,21 +14,23 @@ interface PlantCardProps {
 }
 
 export function PlantCard({ image, waterLevel, sunType, temperature, style }: PlantCardProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: colors.card }, style]}>
       <Image source={image} style={styles.image} />
       <View style={styles.infoContainer}>
         <View style={styles.infoRow}>
-          <Ionicons name="water-outline" size={16} color="#7C9A72" />
-          <ThemedText style={styles.infoText}>{waterLevel}ml</ThemedText>
+          <Ionicons name="water-outline" size={16} color={colors.primary} />
+          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{waterLevel}ml</ThemedText>
         </View>
         <View style={styles.infoRow}>
-          <Ionicons name="sunny-outline" size={16} color="#7C9A72" />
-          <ThemedText style={styles.infoText}>{sunType}</ThemedText>
+          <Ionicons name="sunny-outline" size={16} color={colors.primary} />
+          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{sunType}</ThemedText>
         </View>
         <View style={styles.infoRow}>
-          <Ionicons name="thermometer-outline" size={16} color="#7C9A72" />
-          <ThemedText style={styles.infoText}>{temperature}°F</ThemedText>
+          <Ionicons name="thermometer-outline" size={16} color={colors.primary} />
+          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{temperature}°F</ThemedText>
         </View>
       </View>
     </View>
@@ -36,7 +39,6 @@ export function PlantCard({ image, waterLevel, sunType, temperature, style }: Pl
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
     elevation: 2,
@@ -61,6 +63,5 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: '#666666',
   },
 }); 

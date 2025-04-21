@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/lib/ThemeContext';
 
 interface RelatedPlantCardProps {
   id: number;
@@ -23,29 +24,31 @@ export function RelatedPlantCard({
   sunType,
   temperature,
 }: RelatedPlantCardProps) {
+  const { colors } = useTheme();
+
   return (
-    <Pressable style={styles.container}>
+    <Pressable style={[styles.container, { backgroundColor: colors.card }]}>
       <Image source={image} style={styles.image} />
       <View style={styles.content}>
         <View style={styles.header}>
-          <ThemedText style={styles.title}>{title}</ThemedText>
-          <ThemedText style={styles.price}>${price.toFixed(2)}</ThemedText>
+          <ThemedText style={[styles.title, { color: colors.text }]}>{title}</ThemedText>
+          <ThemedText style={[styles.price, { color: colors.primary }]}>${price.toFixed(2)}</ThemedText>
         </View>
-        <ThemedText style={styles.description} numberOfLines={2}>
+        <ThemedText style={[styles.description, { color: colors.text + '80' }]} numberOfLines={2}>
           {description}
         </ThemedText>
         <View style={styles.infoContainer}>
           <View style={styles.infoRow}>
-            <Ionicons name="water-outline" size={16} color="#7C9A72" />
-            <ThemedText style={styles.infoText}>{waterLevel}ml</ThemedText>
+            <Ionicons name="water-outline" size={16} color={colors.primary} />
+            <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{waterLevel}ml</ThemedText>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="sunny-outline" size={16} color="#7C9A72" />
-            <ThemedText style={styles.infoText}>{sunType}</ThemedText>
+            <Ionicons name="sunny-outline" size={16} color={colors.primary} />
+            <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{sunType}</ThemedText>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="thermometer-outline" size={16} color="#7C9A72" />
-            <ThemedText style={styles.infoText}>{temperature}°F</ThemedText>
+            <Ionicons name="thermometer-outline" size={16} color={colors.primary} />
+            <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{temperature}°F</ThemedText>
           </View>
         </View>
       </View>
@@ -56,7 +59,6 @@ export function RelatedPlantCard({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 16,
@@ -84,16 +86,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
   },
   price: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7C9A72',
   },
   description: {
     fontSize: 12,
-    color: '#666666',
     marginBottom: 12,
   },
   infoContainer: {
@@ -106,6 +105,5 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: '#666666',
   },
 }); 

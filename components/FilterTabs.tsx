@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { ThemedText } from './ThemedText';
+import { useTheme } from '@/lib/ThemeContext';
 
 type FilterOption = 'Indoor' | 'Outdoor' | 'Both';
 
@@ -10,6 +11,7 @@ interface FilterTabsProps {
 }
 
 export function FilterTabs({ selectedFilter, onFilterChange }: FilterTabsProps) {
+  const { colors } = useTheme();
   const filters: FilterOption[] = ['Indoor', 'Outdoor', 'Both'];
 
   return (
@@ -19,14 +21,16 @@ export function FilterTabs({ selectedFilter, onFilterChange }: FilterTabsProps) 
           key={filter}
           style={[
             styles.tab,
-            selectedFilter === filter && styles.selectedTab,
+            { backgroundColor: colors.card },
+            selectedFilter === filter && { backgroundColor: colors.primary },
           ]}
           onPress={() => onFilterChange(filter)}
         >
           <ThemedText
             style={[
               styles.tabText,
-              selectedFilter === filter && styles.selectedTabText,
+              { color: colors.text + '80' },
+              selectedFilter === filter && { color: colors.card },
             ]}
           >
             {filter}
@@ -48,18 +52,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-  },
-  selectedTab: {
-    backgroundColor: '#7C9A72',
   },
   tabText: {
     fontSize: 14,
-    color: '#666666',
-  },
-  selectedTabText: {
-    color: '#FFFFFF',
     fontWeight: '600',
   },
 }); 
