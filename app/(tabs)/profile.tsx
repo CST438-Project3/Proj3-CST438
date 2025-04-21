@@ -52,6 +52,32 @@ export default function ProfileScreen() {
         .single();
 
       if (error) throw error;
+
+      // If there's an avatar URL, download and cache it locally
+      if (data.avatar_url) {
+        const fileName = `${user.id}.jpg`;
+        const localPath = `${FileSystem.cacheDirectory}${fileName}`;
+        
+        try {
+          // Check if we already have the image cached
+          const fileInfo = await FileSystem.getInfoAsync(localPath);
+          if (!fileInfo.exists) {
+            // Download and cache the image
+            const { uri } = await FileSystem.downloadAsync(
+              data.avatar_url,
+              localPath
+            );
+            setLocalImagePath(uri);
+          } else {
+            setLocalImagePath(localPath);
+          }
+        } catch (error) {
+          console.error('Error caching avatar:', error);
+          // If caching fails, just use the remote URL
+          setLocalImagePath(null);
+        }
+      }
+
       setProfile(data);
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -332,10 +358,14 @@ export default function ProfileScreen() {
               />
             ) : profile?.avatar_url ? (
               <Image
-                source={{ uri: profile.avatar_url }}
+                source={{ 
+                  uri: profile.avatar_url,
+                  cache: 'reload'
+                }}
                 style={styles.avatar}
                 onError={(e) => {
                   console.error('Remote image loading error:', e.nativeEvent.error);
+                  // Clear the avatar URL to show the placeholder
                   setProfile(prev => {
                     if (!prev) return null;
                     return {
