@@ -98,6 +98,12 @@ export default function LoginScreen() {
                     setShowThemeMenu(false);
                   }}
                 >
+                  {option.value === 'light' && <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'dark' && <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'spring' && <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'summer' && <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'autumn' && <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'winter' && <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />}
                   <Text style={[
                     styles.themeOptionText,
                     { color: colors.text },
@@ -356,18 +362,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
     borderRadius: 8,
   },
-  themeOptionSelected: {
-    backgroundColor: '#76A97F20',
+  themeIcon: {
+    marginRight: 10,
   },
   themeOptionText: {
     fontSize: 16,
-    color: '#666',
-  },
-  themeOptionTextSelected: {
-    color: '#76A97F',
-    fontWeight: '600',
   },
 }); 

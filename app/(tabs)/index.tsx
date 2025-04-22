@@ -15,7 +15,7 @@ import { Header } from '@/components/Header';
 type FilterOption = 'Indoor' | 'Outdoor' | 'Both';
 
 export default function HomeScreen() {
-  const { colors, setTheme } = useTheme();
+  const { colors, setTheme, theme } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('Indoor');
   const [userName, setUserName] = useState<string>('');
   const [showMenu, setShowMenu] = useState(false);
@@ -144,46 +144,70 @@ export default function HomeScreen() {
               borderColor: colors.border 
             }]}>
               <TouchableOpacity
-                style={[styles.themeOption]}
+                style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => { setTheme('light'); setShowThemeMenu(false); }}
               >
-                <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Light</ThemedText>
+                <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'light' && { color: colors.primary }
+                ]}>Light</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeOption]}
+                style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => { setTheme('dark'); setShowThemeMenu(false); }}
               >
-                <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Dark</ThemedText>
+                <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'dark' && { color: colors.primary }
+                ]}>Dark</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeOption]}
+                style={[styles.themeOption, theme === 'spring' && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => { setTheme('spring'); setShowThemeMenu(false); }}
               >
-                <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Spring</ThemedText>
+                <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'spring' && { color: colors.primary }
+                ]}>Spring</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeOption]}
+                style={[styles.themeOption, theme === 'summer' && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => { setTheme('summer'); setShowThemeMenu(false); }}
               >
-                <Ionicons name="sunny" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Summer</ThemedText>
+                <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'summer' && { color: colors.primary }
+                ]}>Summer</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeOption]}
+                style={[styles.themeOption, theme === 'autumn' && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => { setTheme('autumn'); setShowThemeMenu(false); }}
               >
-                <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Autumn</ThemedText>
+                <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'autumn' && { color: colors.primary }
+                ]}>Autumn</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.themeOption]}
+                style={[styles.themeOption, theme === 'winter' && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => { setTheme('winter'); setShowThemeMenu(false); }}
               >
-                <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Winter</ThemedText>
+                <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'winter' && { color: colors.primary }
+                ]}>Winter</ThemedText>
               </TouchableOpacity>
             </View>
           )}
@@ -310,15 +334,16 @@ const styles = StyleSheet.create({
     top: 160,
     right: 20,
     width: 150,
-    borderRadius: 10,
+    borderRadius: 15,
     borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 3,
     overflow: 'hidden',
     zIndex: 1000,
+    padding: 8,
   },
   menuOption: {
     flexDirection: 'row',
@@ -329,10 +354,13 @@ const styles = StyleSheet.create({
   themeOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
+    padding: 10,
+    borderRadius: 8,
   },
   menuIcon: {
+    marginRight: 10,
+  },
+  themeIcon: {
     marginRight: 10,
   },
   menuOptionText: {
