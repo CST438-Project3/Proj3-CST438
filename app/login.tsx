@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../lib/supabase';
 import { useTheme, Theme } from '@/lib/ThemeContext';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const { theme, setTheme, colors } = useTheme();
+  const { signInWithGoogle } = useAuth();
 
   const themeOptions: { name: string; value: Theme }[] = [
     { name: 'Light', value: 'light' },
@@ -52,14 +54,7 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'iWetMyPlants://login-callback',
-        },
-      });
-
-      if (error) throw error;
+      await signInWithGoogle();
     } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
