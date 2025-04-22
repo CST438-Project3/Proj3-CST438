@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../lib/supabase';
+import { useTheme, Theme } from '@/lib/ThemeContext';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -21,6 +22,17 @@ export default function SignUpScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const { theme, setTheme, colors } = useTheme();
+
+  const themeOptions: { name: string; value: Theme }[] = [
+    { name: 'Light', value: 'light' },
+    { name: 'Dark', value: 'dark' },
+    { name: 'Spring', value: 'spring' },
+    { name: 'Summer', value: 'summer' },
+    { name: 'Autumn', value: 'autumn' },
+    { name: 'Winter', value: 'winter' },
+  ];
 
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
@@ -87,32 +99,85 @@ export default function SignUpScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
+    <TouchableWithoutFeedback onPress={() => {
+      Keyboard.dismiss();
+      setShowThemeMenu(false);
+    }}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.themeMenuContainer}>
+          <TouchableOpacity
+            style={[styles.themeButton, { backgroundColor: colors.card }]}
+            onPress={() => setShowThemeMenu(!showThemeMenu)}
+          >
+            <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          
+          {showThemeMenu && (
+            <View style={[styles.themeDropdown, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}>
+              {themeOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.themeOption,
+                    theme === option.value && { backgroundColor: colors.accent + '20' }
+                  ]}
+                  onPress={() => {
+                    setTheme(option.value);
+                    setShowThemeMenu(false);
+                  }}
+                >
+                  {option.value === 'light' && <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'dark' && <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'spring' && <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'summer' && <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'autumn' && <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  {option.value === 'winter' && <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />}
+                  <Text style={[
+                    styles.themeOptionText,
+                    { color: colors.text },
+                    theme === option.value && { color: colors.primary }
+                  ]}>
+                    {option.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
         <View style={styles.headerContainer}>
-          <Text style={styles.welcomeText}>Create an account</Text>
-          <Text style={styles.taglineText}>Join our plant-loving community</Text>
+          <Text style={[styles.welcomeText, { color: colors.primary }]}>Create an account</Text>
+          <Text style={[styles.taglineText, { color: colors.text }]}>Join our plant-loving community</Text>
         </View>
 
         <View style={styles.formContainer}>
-          <View style={styles.inputContainer}>
-            <Ionicons name="person-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="person-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="First Name"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.text + '80'}
               value={firstName}
               onChangeText={setFirstName}
               autoCapitalize="words"
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="mail-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Email"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.text + '80'}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -120,12 +185,15 @@ export default function SignUpScreen() {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="lock-closed-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Password"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.text + '80'}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -137,17 +205,20 @@ export default function SignUpScreen() {
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={22}
-                color="#76A97F"
+                color={colors.primary}
               />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={22} color="#76A97F" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="lock-closed-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Confirm Password"
-              placeholderTextColor="#666"
+              placeholderTextColor={colors.text + '80'}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
@@ -159,41 +230,45 @@ export default function SignUpScreen() {
               <Ionicons
                 name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
                 size={22}
-                color="#76A97F"
+                color={colors.primary}
               />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity 
-            style={styles.signupButton} 
+            style={[styles.signupButton, { backgroundColor: colors.primary }]} 
             onPress={handleSignUp}
             disabled={loading}
           >
             <View style={styles.buttonContent}>
-              <Ionicons name="person-add-outline" size={24} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.signupButtonText}>{loading ? 'Loading...' : 'Sign Up'}</Text>
+              <Ionicons name="person-add-outline" size={24} color={colors.card} style={styles.buttonIcon} />
+              <Text style={[styles.signupButtonText, { color: colors.card }]}>{loading ? 'Loading...' : 'Sign Up'}</Text>
             </View>
           </TouchableOpacity>
 
-          <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity 
-              style={styles.socialButton}
-              onPress={handleGoogleSignUp}
-              disabled={loading}
-            >
-              <Ionicons name="logo-google" size={24} color="#DB4437" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            style={[styles.googleButton, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}
+            onPress={handleGoogleSignUp}
+            disabled={loading}
+          >
+            <View style={styles.buttonContent}>
+              <Ionicons name="logo-google" size={24} color="#DB4437" style={styles.buttonIcon} />
+              <Text style={[styles.googleButtonText, { color: colors.text }]}>Sign in with Google</Text>
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.loginContainer}>
-            <Text style={styles.haveAccountText}>Already have an account? </Text>
+            <Text style={[styles.haveAccountText, { color: colors.text }]}>Already have an account? </Text>
             <TouchableOpacity 
               style={styles.loginButton}
               onPress={() => router.push('/login')}
             >
               <View style={styles.buttonContent}>
-                <Ionicons name="log-in-outline" size={18} color="#76A97F" style={styles.buttonIcon} />
-                <Text style={styles.loginText}>Log In</Text>
+                <Ionicons name="log-in-outline" size={18} color={colors.primary} style={styles.buttonIcon} />
+                <Text style={[styles.loginText, { color: colors.primary }]}>Log In</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -237,7 +312,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#eee',
   },
   inputIcon: {
     marginRight: 10,
@@ -246,13 +320,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     fontSize: 16,
-    color: '#333',
   },
   eyeIcon: {
     padding: 8,
   },
   signupButton: {
-    backgroundColor: '#76A97F',
     borderRadius: 15,
     height: 55,
     justifyContent: 'center',
@@ -267,27 +339,20 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   signupButtonText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#fff',
+  googleButton: {
+    borderRadius: 15,
+    height: 55,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    marginBottom: 20,
+    borderWidth: 1,
+  },
+  googleButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   loginContainer: {
     flexDirection: 'row',
@@ -296,15 +361,58 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   haveAccountText: {
-    color: '#666',
     fontSize: 16,
   },
   loginButton: {
     marginLeft: 5,
   },
   loginText: {
-    color: '#76A97F',
     fontWeight: 'bold',
+    fontSize: 16,
+  },
+  themeMenuContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 1000,
+  },
+  themeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  themeDropdown: {
+    position: 'absolute',
+    top: 45,
+    left: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 8,
+    width: 150,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+    borderWidth: 1,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+  },
+  themeIcon: {
+    marginRight: 10,
+  },
+  themeOptionText: {
     fontSize: 16,
   },
 }); 
