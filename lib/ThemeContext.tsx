@@ -6,6 +6,8 @@ export type Theme = 'light' | 'dark' | 'spring' | 'summer' | 'autumn' | 'winter'
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  isSeasonalThemeEnabled: boolean;
+  toggleSeasonalTheme: () => void;
   colors: {
     background: string;
     text: string;
@@ -74,20 +76,41 @@ const themeColors = {
   },
 };
 
+const getCurrentSeason = (): Theme => {
+  const now = new Date();
+  const month = now.getMonth() + 1; // getMonth() returns 0-11
+  
+  if (month >= 3 && month <= 5) return 'spring';
+  if (month >= 6 && month <= 8) return 'summer';
+  if (month >= 9 && month <= 11) return 'autumn';
+  return 'winter';
+};
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useColorScheme();
   const [theme, setTheme] = useState<Theme>(systemColorScheme === 'dark' ? 'dark' : 'light');
+  const [isSeasonalThemeEnabled, setIsSeasonalThemeEnabled] = useState(false);
 
   useEffect(() => {
-    // You can add logic here to persist the theme preference
-  }, [theme]);
+    if (isSeasonalThemeEnabled) {
+      const currentSeason = getCurrentSeason();
+      setTheme(currentSeason);
+    }
+  }, [isSeasonalThemeEnabled]);
+
+  const toggleSeasonalTheme = () => {
+    setIsSeasonalThemeEnabled(!isSeasonalThemeEnabled);
+    if (!isSeasonalThemeEnabled) {
+      setTheme(getCurrentSeason());
+    }
+  };
 
   const colors = themeColors[theme];
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, colors }}>
+    <ThemeContext.Provider value={{ theme, setTheme, isSeasonalThemeEnabled, toggleSeasonalTheme, colors }}>
       {children}
     </ThemeContext.Provider>
   );

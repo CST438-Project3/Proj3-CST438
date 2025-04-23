@@ -23,7 +23,7 @@ export default function SignUpScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
-  const { theme, setTheme, colors } = useTheme();
+  const { theme, setTheme, colors, isSeasonalThemeEnabled, toggleSeasonalTheme } = useTheme();
 
   const themeOptions: { name: string; value: Theme }[] = [
     { name: 'Light', value: 'light' },
@@ -117,33 +117,31 @@ export default function SignUpScreen() {
               backgroundColor: colors.card,
               borderColor: colors.border 
             }]}>
-              {themeOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.themeOption,
-                    theme === option.value && { backgroundColor: colors.accent + '20' }
-                  ]}
-                  onPress={() => {
-                    setTheme(option.value);
-                    setShowThemeMenu(false);
-                  }}
-                >
-                  {option.value === 'light' && <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />}
-                  {option.value === 'dark' && <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />}
-                  {option.value === 'spring' && <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />}
-                  {option.value === 'summer' && <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />}
-                  {option.value === 'autumn' && <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />}
-                  {option.value === 'winter' && <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />}
-                  <Text style={[
-                    styles.themeOptionText,
-                    { color: colors.text },
-                    theme === option.value && { color: colors.primary }
-                  ]}>
-                    {option.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <TouchableOpacity
+                style={[styles.themeOption, isSeasonalThemeEnabled && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => {
+                  toggleSeasonalTheme();
+                  setShowThemeMenu(false);
+                }}
+              >
+                <Ionicons name="calendar-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  isSeasonalThemeEnabled && { color: colors.primary }
+                ]}>Seasonal Theme</Text>
+              </TouchableOpacity>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => {
+                  setShowThemeMenu(false);
+                  // Open themes menu
+                }}
+              >
+                <Ionicons name="color-palette" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[styles.themeOptionText, { color: colors.text }]}>Themes</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -414,5 +412,10 @@ const styles = StyleSheet.create({
   },
   themeOptionText: {
     fontSize: 16,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 8,
+    width: '100%',
   },
 }); 

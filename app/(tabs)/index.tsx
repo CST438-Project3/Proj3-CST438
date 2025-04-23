@@ -15,11 +15,11 @@ import { Header } from '@/components/Header';
 type FilterOption = 'Indoor' | 'Outdoor' | 'Both';
 
 export default function HomeScreen() {
-  const { colors, setTheme, theme } = useTheme();
+  const { colors, setTheme, theme, isSeasonalThemeEnabled, toggleSeasonalTheme } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('Indoor');
   const [userName, setUserName] = useState<string>('');
   const [showMenu, setShowMenu] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [showThemesMenu, setShowThemesMenu] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -108,9 +108,9 @@ export default function HomeScreen() {
             name={userName}
             greeting={getGreeting()}
             onMenuPress={() => {
-              if (showMenu || showThemeMenu) {
+              if (showMenu || showThemesMenu) {
                 setShowMenu(false);
-                setShowThemeMenu(false);
+                setShowThemesMenu(false);
               } else {
                 setShowMenu(true);
               }
@@ -121,31 +121,46 @@ export default function HomeScreen() {
           />
           
           {showMenu && (
-            <View style={[styles.menu, { 
+            <View style={[styles.themeDropdown, { 
               backgroundColor: colors.card,
               borderColor: colors.border 
             }]}>
               <TouchableOpacity
-                style={[styles.menuOption]}
+                style={[styles.themeOption, isSeasonalThemeEnabled && { backgroundColor: colors.accent + '20' }]}
                 onPress={() => {
-                  setShowThemeMenu(true);
+                  toggleSeasonalTheme();
                   setShowMenu(false);
                 }}
               >
-                <Ionicons name="color-palette-outline" size={20} color={colors.text} style={styles.menuIcon} />
-                <ThemedText style={[styles.menuOptionText, { color: colors.text }]}>Themes</ThemedText>
+                <Ionicons name="calendar-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  isSeasonalThemeEnabled && { color: colors.primary }
+                ]}>Seasonal Theme</ThemedText>
+              </TouchableOpacity>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <TouchableOpacity
+                style={[styles.themeOption]}
+                onPress={() => {
+                  setShowMenu(false);
+                  setShowThemesMenu(true);
+                }}
+              >
+                <Ionicons name="color-palette" size={20} color={colors.text} style={styles.themeIcon} />
+                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Themes</ThemedText>
               </TouchableOpacity>
             </View>
           )}
 
-          {showThemeMenu && (
-            <View style={[styles.themeMenu, { 
+          {showThemesMenu && (
+            <View style={[styles.themeDropdown, { 
               backgroundColor: colors.card,
               borderColor: colors.border 
             }]}>
               <TouchableOpacity
                 style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('light'); setShowThemeMenu(false); }}
+                onPress={() => { setTheme('light'); setShowThemesMenu(false); }}
               >
                 <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />
                 <ThemedText style={[
@@ -156,7 +171,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('dark'); setShowThemeMenu(false); }}
+                onPress={() => { setTheme('dark'); setShowThemesMenu(false); }}
               >
                 <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />
                 <ThemedText style={[
@@ -167,7 +182,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.themeOption, theme === 'spring' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('spring'); setShowThemeMenu(false); }}
+                onPress={() => { setTheme('spring'); setShowThemesMenu(false); }}
               >
                 <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />
                 <ThemedText style={[
@@ -178,7 +193,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.themeOption, theme === 'summer' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('summer'); setShowThemeMenu(false); }}
+                onPress={() => { setTheme('summer'); setShowThemesMenu(false); }}
               >
                 <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />
                 <ThemedText style={[
@@ -189,7 +204,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.themeOption, theme === 'autumn' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('autumn'); setShowThemeMenu(false); }}
+                onPress={() => { setTheme('autumn'); setShowThemesMenu(false); }}
               >
                 <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />
                 <ThemedText style={[
@@ -200,7 +215,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.themeOption, theme === 'winter' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('winter'); setShowThemeMenu(false); }}
+                onPress={() => { setTheme('winter'); setShowThemesMenu(false); }}
               >
                 <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />
                 <ThemedText style={[
@@ -314,42 +329,21 @@ const styles = StyleSheet.create({
     height: 80,
     marginBottom: 8,
   },
-  menu: {
+  themeDropdown: {
     position: 'absolute',
     top: 120,
     right: 20,
-    width: 150,
-    borderRadius: 10,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    overflow: 'hidden',
-    zIndex: 1000,
-  },
-  themeMenu: {
-    position: 'absolute',
-    top: 160,
-    right: 20,
-    width: 150,
+    backgroundColor: '#FFFFFF',
     borderRadius: 15,
-    borderWidth: 1,
+    padding: 8,
+    width: 150,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
-    overflow: 'hidden',
+    borderWidth: 1,
     zIndex: 1000,
-    padding: 8,
-  },
-  menuOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
   },
   themeOption: {
     flexDirection: 'row',
@@ -357,16 +351,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
   },
-  menuIcon: {
-    marginRight: 10,
-  },
   themeIcon: {
     marginRight: 10,
   },
-  menuOptionText: {
-    fontSize: 16,
-  },
   themeOptionText: {
     fontSize: 16,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 8,
+    width: '100%',
   },
 });
