@@ -40,9 +40,10 @@ function useProtectedRoute() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inTabsGroup = segments[0] === '(tabs)';
+    const isSignupPage = segments[0] === 'signup';
 
-    if (!session && !inAuthGroup) {
-      // Redirect to the login page if not authenticated
+    if (!session && !inAuthGroup && !isSignupPage) {
+      // Redirect to the login page if not authenticated and not on signup page
       router.replace('/login');
     } else if (session && !inTabsGroup) {
       // Redirect to the tabs if authenticated

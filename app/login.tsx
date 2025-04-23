@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [showThemesMenu, setShowThemesMenu] = useState(false);
   const { theme, setTheme, colors, isSeasonalThemeEnabled, toggleSeasonalTheme } = useTheme();
   const { signInWithGoogle } = useAuth();
 
@@ -66,6 +67,7 @@ export default function LoginScreen() {
     <TouchableWithoutFeedback onPress={() => {
       Keyboard.dismiss();
       setShowThemeMenu(false);
+      setShowThemesMenu(false);
     }}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.themeMenuContainer}>
@@ -100,11 +102,85 @@ export default function LoginScreen() {
                 style={[styles.themeOption]}
                 onPress={() => {
                   setShowThemeMenu(false);
-                  // Open themes menu
+                  setShowThemesMenu(true);
                 }}
               >
                 <Ionicons name="color-palette" size={20} color={colors.text} style={styles.themeIcon} />
                 <Text style={[styles.themeOptionText, { color: colors.text }]}>Themes</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {showThemesMenu && (
+            <View style={[styles.themeDropdown, { 
+              backgroundColor: colors.card,
+              borderColor: colors.border 
+            }]}>
+              <TouchableOpacity
+                style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => { setTheme('light'); setShowThemesMenu(false); }}
+              >
+                <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'light' && { color: colors.primary }
+                ]}>Light</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => { setTheme('dark'); setShowThemesMenu(false); }}
+              >
+                <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'dark' && { color: colors.primary }
+                ]}>Dark</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption, theme === 'spring' && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => { setTheme('spring'); setShowThemesMenu(false); }}
+              >
+                <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'spring' && { color: colors.primary }
+                ]}>Spring</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption, theme === 'summer' && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => { setTheme('summer'); setShowThemesMenu(false); }}
+              >
+                <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'summer' && { color: colors.primary }
+                ]}>Summer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption, theme === 'autumn' && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => { setTheme('autumn'); setShowThemesMenu(false); }}
+              >
+                <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'autumn' && { color: colors.primary }
+                ]}>Autumn</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.themeOption, theme === 'winter' && { backgroundColor: colors.accent + '20' }]}
+                onPress={() => { setTheme('winter'); setShowThemesMenu(false); }}
+              >
+                <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />
+                <Text style={[
+                  styles.themeOptionText,
+                  { color: colors.text },
+                  theme === 'winter' && { color: colors.primary }
+                ]}>Winter</Text>
               </TouchableOpacity>
             </View>
           )}
