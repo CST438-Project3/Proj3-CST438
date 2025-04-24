@@ -8,6 +8,9 @@
     "scheme": "iWetMyPlants",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "developmentClient": {
       "silentLaunch": true
     },
