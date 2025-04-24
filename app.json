@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "iWetMyPlants",
+    "scheme": ["plantgainz"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "assetBundlePatterns": [
@@ -30,7 +30,7 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "iWetMyPlants"
+              "scheme": "plantgainz"
             }
           ],
           "category": [
