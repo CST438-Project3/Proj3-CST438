@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,7 @@ export default function HomeScreen() {
   const [userName, setUserName] = useState<string>('');
   const [showMenu, setShowMenu] = useState(false);
   const [showThemesMenu, setShowThemesMenu] = useState(false);
+  const [toggleAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -96,6 +97,17 @@ export default function HomeScreen() {
     return 'Good evening';
   };
 
+  const handleToggle = () => {
+    const newValue = !isSeasonalThemeEnabled;
+    Animated.timing(toggleAnim, {
+      toValue: newValue ? 20 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      toggleSeasonalTheme();
+    });
+  };
+
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ImageBackground
@@ -125,20 +137,60 @@ export default function HomeScreen() {
               backgroundColor: colors.card,
               borderColor: colors.border 
             }]}>
-              <TouchableOpacity
-                style={[styles.themeOption, isSeasonalThemeEnabled && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => {
-                  toggleSeasonalTheme();
-                  setShowMenu(false);
-                }}
-              >
-                <Ionicons name="calendar-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  isSeasonalThemeEnabled && { color: colors.primary }
-                ]}>Seasonal Theme</ThemedText>
-              </TouchableOpacity>
+              <View style={styles.toggleContainer}>
+                <View style={styles.seasonIconsContainer}>
+                  <View style={styles.seasonIconsRow}>
+                    <Ionicons name="flower-outline" size={14} color={colors.text} />
+                    <Ionicons name="sunny-outline" size={14} color={colors.text} />
+                  </View>
+                  <View style={styles.seasonIconsRow}>
+                    <Ionicons name="leaf-outline" size={14} color={colors.text} />
+                    <Ionicons name="snow-outline" size={14} color={colors.text} />
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  onPress={handleToggle}
+                  style={[
+                    styles.toggleTrack,
+                    { 
+                      backgroundColor: isSeasonalThemeEnabled 
+                        ? colors.primary 
+                        : theme === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.2)' 
+                          : 'rgba(0, 0, 0, 0.1)',
+                      outlineWidth: 1,
+                      outlineStyle: 'solid',
+                      outlineColor: isSeasonalThemeEnabled 
+                        ? colors.primary 
+                        : theme === 'dark'
+                          ? 'rgba(255, 255, 255, 0.3)'
+                          : 'rgba(0, 0, 0, 0.2)',
+                      outlineOffset: 0
+                    }
+                  ]}
+                >
+                  <Animated.View
+                    style={[
+                      styles.toggleThumb,
+                      {
+                        backgroundColor: colors.card,
+                        transform: [{ translateX: toggleAnim }],
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 1,
+                        elevation: 2,
+                      },
+                    ]}
+                  >
+                    <Ionicons 
+                      name="sync-outline" 
+                      size={14} 
+                      color={isSeasonalThemeEnabled ? colors.primary : colors.text + '40'} 
+                    />
+                  </Animated.View>
+                </TouchableOpacity>
+              </View>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <TouchableOpacity
                 style={[styles.themeOption]}
@@ -361,5 +413,35 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 8,
     width: '100%',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  seasonIconsContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 2,
+    marginRight: 8,
+  },
+  seasonIconsRow: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  toggleTrack: {
+    width: 50,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    padding: 2,
+  },
+  toggleThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

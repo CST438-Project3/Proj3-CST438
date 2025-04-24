@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import Colors from '@/constants/Colors';
 
 export type Theme = 'light' | 'dark' | 'spring' | 'summer' | 'autumn' | 'winter';
 
@@ -89,10 +90,11 @@ const getCurrentSeason = (): Theme => {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemColorScheme = useColorScheme();
-  const [theme, setTheme] = useState<Theme>(systemColorScheme === 'dark' ? 'dark' : 'light');
+  const systemColorScheme = useColorScheme() || 'light';
+  const [theme, setTheme] = useState<Theme>(systemColorScheme as Theme);
   const [isSeasonalThemeEnabled, setIsSeasonalThemeEnabled] = useState(false);
 
+  // Effect to handle seasonal theme changes
   useEffect(() => {
     if (isSeasonalThemeEnabled) {
       const currentSeason = getCurrentSeason();
@@ -100,11 +102,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isSeasonalThemeEnabled]);
 
+  // Effect to handle system theme changes
+  useEffect(() => {
+    if (!isSeasonalThemeEnabled) {
+      setTheme(systemColorScheme as Theme);
+    }
+  }, [systemColorScheme, isSeasonalThemeEnabled]);
+
   const toggleSeasonalTheme = () => {
     setIsSeasonalThemeEnabled(!isSeasonalThemeEnabled);
-    if (!isSeasonalThemeEnabled) {
-      setTheme(getCurrentSeason());
-    }
   };
 
   const colors = themeColors[theme];
