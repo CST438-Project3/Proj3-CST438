@@ -9,12 +9,11 @@ import {
   Keyboard,
   Alert,
   Image,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../lib/supabase';
-import { useTheme, Theme } from '@/lib/ThemeContext';
+import { useTheme } from '@/lib/ThemeContext';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function LoginScreen() {
@@ -22,20 +21,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
-  const [showThemesMenu, setShowThemesMenu] = useState(false);
-  const { theme, setTheme, colors, isSeasonalThemeEnabled, toggleSeasonalTheme } = useTheme();
+  const { colors } = useTheme();
   const { signInWithGoogle } = useAuth();
-  const [toggleAnim] = useState(new Animated.Value(0));
-
-  const themeOptions: { name: string; value: Theme }[] = [
-    { name: 'Light', value: 'light' },
-    { name: 'Dark', value: 'dark' },
-    { name: 'Spring', value: 'spring' },
-    { name: 'Summer', value: 'summer' },
-    { name: 'Autumn', value: 'autumn' },
-    { name: 'Winter', value: 'winter' },
-  ];
 
   const handleLogin = async () => {
     try {
@@ -65,179 +52,11 @@ export default function LoginScreen() {
     }
   };
 
-  const handleToggle = () => {
-    const newValue = !isSeasonalThemeEnabled;
-    Animated.timing(toggleAnim, {
-      toValue: newValue ? 20 : 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start(() => {
-      toggleSeasonalTheme();
-    });
-  };
-
   return (
     <TouchableWithoutFeedback onPress={() => {
       Keyboard.dismiss();
-      setShowThemeMenu(false);
-      setShowThemesMenu(false);
     }}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.themeMenuContainer}>
-          <TouchableOpacity
-            style={[styles.themeButton, { backgroundColor: colors.card }]}
-            onPress={() => setShowThemeMenu(!showThemeMenu)}
-          >
-            <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
-          </TouchableOpacity>
-          
-          {showThemeMenu && (
-            <View style={[styles.themeDropdown, { 
-              backgroundColor: colors.card,
-              borderColor: colors.border 
-            }]}>
-              <View style={styles.toggleContainer}>
-                <View style={styles.seasonIconsContainer}>
-                  <View style={styles.seasonIconsRow}>
-                    <Ionicons name="flower-outline" size={14} color={colors.text} />
-                    <Ionicons name="sunny-outline" size={14} color={colors.text} />
-                  </View>
-                  <View style={styles.seasonIconsRow}>
-                    <Ionicons name="leaf-outline" size={14} color={colors.text} />
-                    <Ionicons name="snow-outline" size={14} color={colors.text} />
-                  </View>
-                </View>
-                <TouchableOpacity 
-                  onPress={handleToggle}
-                  style={[
-                    styles.toggleTrack,
-                    { 
-                      backgroundColor: isSeasonalThemeEnabled 
-                        ? colors.primary 
-                        : theme === 'dark' 
-                          ? 'rgba(255, 255, 255, 0.2)' 
-                          : 'rgba(0, 0, 0, 0.1)',
-                      borderWidth: 1,
-                      borderStyle: 'solid',
-                      borderColor: isSeasonalThemeEnabled 
-                        ? colors.primary 
-                        : theme === 'dark'
-                          ? 'rgba(255, 255, 255, 0.3)'
-                          : 'rgba(0, 0, 0, 0.2)',
-                    }
-                  ]}
-                >
-                  <Animated.View
-                    style={[
-                      styles.toggleThumb,
-                      {
-                        backgroundColor: colors.card,
-                        transform: [{ translateX: toggleAnim }],
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.2,
-                        shadowRadius: 1,
-                        elevation: 2,
-                      },
-                    ]}
-                  >
-                    <Ionicons 
-                      name="sync-outline" 
-                      size={14} 
-                      color={isSeasonalThemeEnabled ? colors.primary : colors.text + '40'} 
-                    />
-                  </Animated.View>
-                </TouchableOpacity>
-              </View>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-              <TouchableOpacity
-                style={[styles.themeOption]}
-                onPress={() => {
-                  setShowThemeMenu(false);
-                  setShowThemesMenu(true);
-                }}
-              >
-                <Ionicons name="color-palette" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[styles.themeOptionText, { color: colors.text }]}>Themes</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {showThemesMenu && (
-            <View style={[styles.themeDropdown, { 
-              backgroundColor: colors.card,
-              borderColor: colors.border 
-            }]}>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('light'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'light' && { color: colors.primary }
-                ]}>Light</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('dark'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'dark' && { color: colors.primary }
-                ]}>Dark</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'spring' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('spring'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'spring' && { color: colors.primary }
-                ]}>Spring</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'summer' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('summer'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'summer' && { color: colors.primary }
-                ]}>Summer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'autumn' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('autumn'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'autumn' && { color: colors.primary }
-                ]}>Autumn</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'winter' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('winter'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <Text style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'winter' && { color: colors.primary }
-                ]}>Winter</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
         <View style={styles.headerContainer}>
           <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
             <Image 
@@ -447,88 +266,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   signupText: {
-    color: '#76A97F',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  themeMenuContainer: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    zIndex: 1000,
-  },
-  themeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  themeDropdown: {
-    position: 'absolute',
-    top: 45,
-    left: 0,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 15,
-    padding: 8,
-    width: 150,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-    borderWidth: 1,
-  },
-  themeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
-  },
-  themeIcon: {
-    marginRight: 10,
-  },
-  themeOptionText: {
-    fontSize: 16,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 8,
-    width: '100%',
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-  },
-  seasonIconsContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 2,
-    marginRight: 8,
-  },
-  seasonIconsRow: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  toggleTrack: {
-    width: 50,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    padding: 2,
-  },
-  toggleThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 }); 
