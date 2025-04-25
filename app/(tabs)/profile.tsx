@@ -566,7 +566,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity
                   style={[
                     styles.themeButton,
-                    { borderBottomWidth: 0 },
+                    { borderBottomColor: colors.border },
                     theme === 'winter' && styles.selectedTheme
                   ]}
                   onPress={() => setTheme('winter')}
