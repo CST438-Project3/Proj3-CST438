@@ -158,6 +158,11 @@ export default function SettingsScreen() {
         isGoogleUser && styles.centeredContent
       ]}
     >
+      <View style={styles.headerContainer}>
+        <Ionicons name="settings-outline" size={24} color={colors.text} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
+      </View>
+
       <View style={[styles.section, { backgroundColor: colors.card }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Update Name</Text>
         <TextInput
@@ -259,9 +264,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight + 20,
     paddingHorizontal: 20,
     paddingBottom: 40,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 30,
+    gap: 10,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   centeredContent: {
     flexGrow: 1,
