@@ -17,7 +17,7 @@ import { useTheme } from '@/lib/ThemeContext';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,8 +27,23 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       setLoading(true);
+      
+      // First, try to find the user by username
+      const { data: userData, error: userError } = await supabase
+        .from('user')
+        .select('email')
+        .eq('username', loginIdentifier)
+        .single();
+
+      let emailToUse = loginIdentifier;
+      
+      // If we found a user by username, use their email
+      if (userData && !userError) {
+        emailToUse = userData.email;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: emailToUse,
         password,
       });
 
@@ -73,15 +88,15 @@ export default function LoginScreen() {
             backgroundColor: colors.card,
             borderColor: colors.border 
           }]}>
-            <Ionicons name="mail-outline" size={22} color={colors.primary} style={styles.inputIcon} />
+            <Ionicons name="person-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Email"
+              placeholder="Username or Email"
               placeholderTextColor={colors.text + '80'}
-              value={email}
-              onChangeText={setEmail}
+              value={loginIdentifier}
+              onChangeText={setLoginIdentifier}
               autoCapitalize="none"
-              keyboardType="email-address"
+              autoCorrect={false}
             />
           </View>
 

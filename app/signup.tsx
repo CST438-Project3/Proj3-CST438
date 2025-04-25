@@ -19,7 +19,8 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
+  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,22 +32,50 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (!firstName.trim()) {
-      Alert.alert('Error', 'Please enter your first name');
+    if (!username.trim()) {
+      Alert.alert('Error', 'Please enter a username');
+      return;
+    }
+
+    if (!fullName.trim()) {
+      Alert.alert('Error', 'Please enter your name');
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Starting signup process');
       
+      // First check if username already exists
+      const { data: existingUser, error: usernameCheckError } = await supabase
+        .from('user')
+        .select('username')
+        .eq('username', username.trim())
+        .single();
+
+      if (existingUser) {
+        Alert.alert(
+          'Username Taken',
+          'This username is already in use. Please choose a different username.',
+          [
+            {
+              text: 'OK',
+              style: 'default'
+            }
+          ]
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Then try to sign up
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: 'https://aoybkwggbrkmrgubmccp.supabase.co/auth/v1/callback',
           data: {
-            full_name: firstName.trim()
+            full_name: fullName.trim(),
+            username: username.trim()
           }
         },
       });
@@ -55,10 +84,10 @@ export default function SignUpScreen() {
         const errorMessage = signUpError instanceof Error ? signUpError.message : 'Unknown error';
         console.error('Signup error:', errorMessage);
         
-        if (errorMessage.includes('already registered')) {
+        if (errorMessage.toLowerCase().includes('email') && errorMessage.toLowerCase().includes('taken')) {
           Alert.alert(
-            'Account Exists',
-            'An account with this email already exists. Please try logging in instead.',
+            'Email Already Registered',
+            'An account with this email already exists.',
             [
               {
                 text: 'Go to Login',
@@ -70,46 +99,53 @@ export default function SignUpScreen() {
               }
             ]
           );
-          return;
+        } else {
+          Alert.alert('Error', errorMessage);
         }
-        throw signUpError;
+        return;
       }
 
       if (user) {
-        console.log('User created successfully');
-        Alert.alert(
-          'Account Created',
-          'Your account has been created. Please check your email (including spam folder) for the verification link. If you don\'t receive it within a few minutes, try logging in to request a new verification email.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/login')
-            }
-          ]
-        );
-      } else {
-        console.log('Account creation in progress');
-        Alert.alert(
-          'Signup Status',
-          'Your account creation is being processed. Please check your email for verification instructions.',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/login')
-            }
-          ]
-        );
+        const { error: updateError } = await supabase
+          .from('user')
+          .update({ 
+            username: username.trim(),
+            full_name: fullName.trim()
+          })
+          .eq('id', user.id);
+
+        if (updateError) {
+          if (updateError.message.toLowerCase().includes('username') && updateError.message.toLowerCase().includes('unique')) {
+            Alert.alert(
+              'Username Taken',
+              'This username was just taken. Please choose a different username.',
+              [
+                {
+                  text: 'OK',
+                  style: 'default'
+                }
+              ]
+            );
+            // Delete the created auth user since we couldn't set the username
+            await supabase.auth.admin.deleteUser(user.id);
+            return;
+          }
+          throw updateError;
+        }
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      console.error('Signup process error:', errorMessage);
-      
+
       Alert.alert(
-        'Error',
-        errorMessage === 'User already registered'
-          ? 'This email is already registered. Please try logging in instead.'
-          : `Signup error: ${errorMessage}`
+        'Success',
+        'Please check your email to verify your account.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/login')
+          }
+        ]
       );
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -156,10 +192,26 @@ export default function SignUpScreen() {
             <Ionicons name="person-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="First Name"
+              placeholder="Username"
               placeholderTextColor={colors.text + '80'}
-              value={firstName}
-              onChangeText={setFirstName}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="person-outline" size={22} color={colors.primary} style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Full Name"
+              placeholderTextColor={colors.text + '80'}
+              value={fullName}
+              onChangeText={setFullName}
               autoCapitalize="words"
             />
           </View>

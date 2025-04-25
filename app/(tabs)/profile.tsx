@@ -24,6 +24,7 @@ type Profile = {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  username: string | null;
 };
 
 export default function ProfileScreen() {
@@ -406,7 +407,16 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
           <Text style={[styles.name, { color: colors.text }]}>{profile?.full_name || 'No name set'}</Text>
-          <Text style={[styles.email, { color: colors.text + '80' }]}>{profile?.email}</Text>
+          <View style={styles.infoContainer}>
+            <Ionicons name="mail-outline" size={18} color={colors.text + '80'} style={styles.infoIcon} />
+            <Text style={[styles.email, { color: colors.text + '80' }]}>{profile?.email}</Text>
+          </View>
+          {profile?.username && (
+            <View style={styles.infoContainer}>
+              <Ionicons name="person-outline" size={18} color={colors.text + '80'} style={styles.infoIcon} />
+              <Text style={[styles.username, { color: colors.text + '80' }]}>{profile.username}</Text>
+            </View>
+          )}
           {profile?.avatar_url && (
             <TouchableOpacity 
               style={styles.removeAvatarButton}
@@ -494,7 +504,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  infoIcon: {
+    marginRight: 8,
+  },
   email: {
+    fontSize: 16,
+  },
+  username: {
     fontSize: 16,
   },
   section: {

@@ -24,16 +24,42 @@ export default function SettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [username, setUsername] = useState('');
+  const [newUsername, setNewUsername] = useState('');
 
   useEffect(() => {
     checkAuthProvider();
+    loadUserData();
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('user')
+          .select('username, full_name')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          const currentUsername = data.username || '';
+          setUsername(currentUsername);
+          setNewUsername('');
+          setNewName('');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
 
   const checkAuthProvider = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Check if the user logged in with Google
         const isGoogle = user.app_metadata.provider === 'google';
         setIsGoogleUser(isGoogle);
       }
@@ -42,29 +68,42 @@ export default function SettingsScreen() {
     }
   };
 
-  const updateName = async () => {
-    if (!newName.trim()) {
-      Alert.alert('Error', 'Please enter a name');
-      return;
-    }
-
+  const updateAccountInfo = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
+      const updates = {};
+      
+      if (newUsername.trim() && newUsername.trim() !== username) {
+        updates.username = newUsername.trim();
+      }
+      
+      if (newName.trim() && newName.trim() !== newName) {
+        updates.full_name = newName.trim();
+      }
+
+      if (Object.keys(updates).length === 0) {
+        Alert.alert('Info', 'No changes to update');
+        return;
+      }
+
       const { error } = await supabase
         .from('user')
-        .update({ full_name: newName.trim() })
+        .update(updates)
         .eq('id', user.id);
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Name updated successfully');
+      Alert.alert('Success', 'Account information updated successfully');
+      if (updates.username) {
+        setUsername(updates.username);
+      }
+      setNewUsername('');
       setNewName('');
-      router.back();
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update name');
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update account information');
     } finally {
       setLoading(false);
     }
@@ -153,107 +192,174 @@ export default function SettingsScreen() {
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[
-        styles.contentContainer,
-        isGoogleUser && styles.centeredContent
-      ]}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.headerContainer}>
         <Ionicons name="settings-outline" size={24} color={colors.text} />
         <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>
       </View>
 
-      <View style={[styles.section, { backgroundColor: colors.card }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Update Name</Text>
-        <TextInput
-          style={[styles.input, { 
-            backgroundColor: colors.background,
-            color: colors.text,
-            borderColor: colors.border 
-          }]}
-          placeholder="Enter new name"
-          placeholderTextColor={colors.text + '80'}
-          value={newName}
-          onChangeText={setNewName}
-        />
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
-          onPress={updateName}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={colors.card} />
-          ) : (
-            <Text style={[styles.buttonText, { color: colors.card }]}>Update Name</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {!isGoogleUser && (
+      <View style={[
+        styles.cardsContainer,
+        isGoogleUser && styles.googleUserCardsContainer
+      ]}>
         <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Change Password</Text>
-          <TextInput
-            style={[styles.input, { 
-              backgroundColor: colors.background,
-              color: colors.text,
-              borderColor: colors.border 
-            }]}
-            placeholder="Current password"
-            placeholderTextColor={colors.text + '80'}
-            secureTextEntry
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-          />
-          <TextInput
-            style={[styles.input, { 
-              backgroundColor: colors.background,
-              color: colors.text,
-              borderColor: colors.border 
-            }]}
-            placeholder="New password"
-            placeholderTextColor={colors.text + '80'}
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-          />
-          <TextInput
-            style={[styles.input, { 
-              backgroundColor: colors.background,
-              color: colors.text,
-              borderColor: colors.border 
-            }]}
-            placeholder="Confirm new password"
-            placeholderTextColor={colors.text + '80'}
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
+          
+          <View style={styles.inputGroup}>
+            {!isGoogleUser && (
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border 
+                }]}
+                placeholder="Username"
+                placeholderTextColor={colors.text + '80'}
+                value={newUsername}
+                onChangeText={setNewUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            )}
+
+            {isGoogleUser && !username && (
+              <>
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  Set a username to make logging in easier
+                </Text>
+                <TextInput
+                  style={[styles.input, { 
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border 
+                  }]}
+                  placeholder="Username"
+                  placeholderTextColor={colors.text + '80'}
+                  value={newUsername}
+                  onChangeText={setNewUsername}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </>
+            )}
+
+            {isGoogleUser && username && (
+              <>
+                <Text style={[styles.infoText, { color: colors.text }]}>
+                  Current Username: {username}
+                </Text>
+                <TextInput
+                  style={[styles.input, { 
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                    borderColor: colors.border 
+                  }]}
+                  placeholder="Username"
+                  placeholderTextColor={colors.text + '80'}
+                  value={newUsername}
+                  onChangeText={setNewUsername}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </>
+            )}
+
+            <TextInput
+              style={[styles.input, { 
+                backgroundColor: colors.background,
+                color: colors.text,
+                borderColor: colors.border 
+              }]}
+              placeholder="Name"
+              placeholderTextColor={colors.text + '80'}
+              value={newName}
+              onChangeText={setNewName}
+            />
+            
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: colors.primary }]}
+              onPress={updateAccountInfo}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <Text style={[styles.buttonText, { color: colors.card }]}>Update Account Info</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {!isGoogleUser && (
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Change Password</Text>
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border 
+                }]}
+                placeholder="Current password"
+                placeholderTextColor={colors.text + '80'}
+                secureTextEntry
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+              />
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border 
+                }]}
+                placeholder="New password"
+                placeholderTextColor={colors.text + '80'}
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  borderColor: colors.border 
+                }]}
+                placeholder="Confirm new password"
+                placeholderTextColor={colors.text + '80'}
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.primary }]}
+                onPress={updatePassword}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.card} />
+                ) : (
+                  <Text style={[styles.buttonText, { color: colors.card }]}>Update Password</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.primary }]}
-            onPress={updatePassword}
+            style={[styles.button, { backgroundColor: '#DC3545' }]}
+            onPress={deleteAccount}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color={colors.card} />
             ) : (
-              <Text style={[styles.buttonText, { color: colors.card }]}>Update Password</Text>
+              <Text style={[styles.buttonText, { color: colors.card }]}>Delete Account</Text>
             )}
           </TouchableOpacity>
         </View>
-      )}
-
-      <View style={[styles.section, { backgroundColor: colors.card }]}>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#DC3545' }]}
-          onPress={deleteAccount}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={colors.card} />
-          ) : (
-            <Text style={[styles.buttonText, { color: colors.card }]}>Delete Account</Text>
-          )}
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -265,41 +371,45 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight + 20,
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     gap: 10,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
   },
-  centeredContent: {
-    flexGrow: 1,
+  cardsContainer: {
+    flex: 1,
+  },
+  googleUserCardsContainer: {
+    flex: 1,
     justifyContent: 'center',
   },
   section: {
     borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
+    padding: 16,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 16,
+  },
+  inputGroup: {
+    gap: 12,
   },
   input: {
     height: 50,
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 15,
-    marginBottom: 15,
   },
   button: {
     height: 50,
@@ -310,5 +420,9 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  infoText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 }); 
