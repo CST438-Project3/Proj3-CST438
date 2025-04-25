@@ -46,7 +46,7 @@ export default function ProfileScreen() {
       if (!user) throw new Error('No user found');
 
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select('*')
         .eq('id', user.id)
         .single();
@@ -232,7 +232,7 @@ export default function ProfileScreen() {
       // Update the profile
       console.log('Updating user profile...');
       const { error: updateError } = await supabase
-        .from('users')
+        .from('user')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
@@ -290,7 +290,7 @@ export default function ProfileScreen() {
 
       // Update the profile to remove avatar
       const { error: updateError } = await supabase
-        .from('users')
+        .from('user')
         .update({ avatar_url: null })
         .eq('id', user.id);
 

@@ -28,7 +28,7 @@ export default function HomeScreen() {
       if (user) {
         // Get the user's information from the users table
         const { data, error } = await supabase
-          .from('users')
+          .from('user')
           .select('full_name')
           .eq('id', user.id)
           .single();

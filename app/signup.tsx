@@ -62,34 +62,76 @@ export default function SignUpScreen() {
 
     try {
       setLoading(true);
+      console.log('Starting signup process for email:', email);
+      
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: 'iWetMyPlants://login-callback',
+          emailRedirectTo: 'https://aoybkwggbrkmrgubmccp.supabase.co/auth/v1/callback',
+          data: {
+            full_name: firstName.trim()
+          }
         },
       });
 
-      if (signUpError) throw signUpError;
+      console.log('Signup response:', { user, error: signUpError });
 
-      if (user) {
-        // Create a profile for the new user
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: user.id,
-              first_name: firstName.trim(),
-            },
-          ]);
-
-        if (profileError) throw profileError;
+      if (signUpError) {
+        console.error('Signup error:', signUpError);
+        if (signUpError.message.includes('already registered')) {
+          Alert.alert(
+            'Account Exists',
+            'An account with this email already exists. Please try logging in instead.',
+            [
+              {
+                text: 'Go to Login',
+                onPress: () => router.replace('/login')
+              },
+              {
+                text: 'Try Different Email',
+                style: 'cancel'
+              }
+            ]
+          );
+          return;
+        }
+        throw signUpError;
       }
 
-      Alert.alert('Success', 'Check your email for the confirmation link!');
-      router.replace('/login');
+      if (user) {
+        console.log('User created successfully:', user);
+        Alert.alert(
+          'Account Created',
+          'Your account has been created. Please check your email (including spam folder) for the verification link. If you don\'t receive it within a few minutes, try logging in to request a new verification email.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/login')
+            }
+          ]
+        );
+      } else {
+        console.log('No user returned but also no error');
+        Alert.alert(
+          'Signup Status',
+          'Your account creation is being processed. Please check your email for verification instructions.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/login')
+            }
+          ]
+        );
+      }
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      console.error('Signup process error:', error);
+      Alert.alert(
+        'Error',
+        error.message === 'User already registered'
+          ? 'This email is already registered. Please try logging in instead.'
+          : `Signup error: ${error.message}`
+      );
     } finally {
       setLoading(false);
     }
