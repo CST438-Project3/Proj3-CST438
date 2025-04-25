@@ -292,8 +292,8 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.forgotPasswordContainer}>
-            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
+          <TouchableOpacity style={[styles.forgotPasswordContainer, { alignSelf: 'center' }]}>
+            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Reset or Forgot Password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -397,7 +397,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   forgotPasswordContainer: {
-    alignSelf: 'flex-end',
     marginBottom: 20,
   },
   forgotPasswordText: {
