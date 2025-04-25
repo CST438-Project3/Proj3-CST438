@@ -452,7 +452,7 @@ export default function ProfileScreen() {
 
           <View>
             <TouchableOpacity 
-              style={[styles.button, { borderBottomColor: showThemes ? colors.border : 'transparent' }]}
+              style={[styles.button, { borderBottomColor: colors.border }]}
               onPress={() => setShowThemes(!showThemes)}
             >
               <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
