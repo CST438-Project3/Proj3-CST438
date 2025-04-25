@@ -10,39 +10,42 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { supabase } from '../lib/supabase';
+import { router, useLocalSearchParams } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/ThemeContext';
 
-export default function ResetPasswordScreen() {
-  const [email, setEmail] = useState('');
+export default function UpdatePasswordScreen() {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
+  const { email } = useLocalSearchParams();
 
-  const handleSendCode = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+  const handleUpdatePassword = async () => {
+    if (!password || !confirmPassword) {
+      Alert.alert('Error', 'Please enter both password fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
     try {
       setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.EXPO_PUBLIC_APP_URL}/reset-password-callback`
+      const { error } = await supabase.auth.updateUser({
+        password: password
       });
-      
+
       if (error) throw error;
 
-      Alert.alert(
-        'Password Reset Link Sent',
-        'Please check your email for the password reset link. You will need to open the link on the same device where the app is installed.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      Alert.alert('Success', 'Password updated successfully!', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/login'),
+        },
+      ]);
     } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {
@@ -54,9 +57,9 @@ export default function ResetPasswordScreen() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headerContainer}>
-          <Text style={[styles.title, { color: colors.primary }]}>Reset Password</Text>
+          <Text style={[styles.title, { color: colors.primary }]}>Update Password</Text>
           <Text style={[styles.subtitle, { color: colors.text }]}>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your new password
           </Text>
         </View>
 
@@ -65,38 +68,42 @@ export default function ResetPasswordScreen() {
             backgroundColor: colors.card,
             borderColor: colors.border 
           }]}>
-            <Ionicons name="mail-outline" size={22} color={colors.primary} style={styles.inputIcon} />
+            <Ionicons name="lock-closed-outline" size={22} color={colors.primary} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Email"
+              placeholder="New Password"
               placeholderTextColor={colors.text + '80'}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </View>
+
+          <View style={[styles.inputContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border 
+          }]}>
+            <Ionicons name="lock-closed-outline" size={22} color={colors.primary} style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Confirm New Password"
+              placeholderTextColor={colors.text + '80'}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
             />
           </View>
 
           <TouchableOpacity 
-            style={[styles.resetButton, { backgroundColor: colors.primary }]} 
-            onPress={handleSendCode}
+            style={[styles.updateButton, { backgroundColor: colors.primary }]} 
+            onPress={handleUpdatePassword}
             disabled={loading}
           >
             <View style={styles.buttonContent}>
-              <Ionicons name="mail-outline" size={24} color={colors.card} style={styles.buttonIcon} />
-              <Text style={[styles.resetButtonText, { color: colors.card }]}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
+              <Ionicons name="checkmark-outline" size={24} color={colors.card} style={styles.buttonIcon} />
+              <Text style={[styles.updateButtonText, { color: colors.card }]}>
+                {loading ? 'Updating...' : 'Update Password'}
               </Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <View style={styles.buttonContent}>
-              <Ionicons name="arrow-back-outline" size={18} color={colors.primary} style={styles.buttonIcon} />
-              <Text style={[styles.backButtonText, { color: colors.primary }]}>Back to Login</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -145,7 +152,7 @@ const styles = StyleSheet.create({
     height: '100%',
     fontSize: 16,
   },
-  resetButton: {
+  updateButton: {
     borderRadius: 15,
     height: 55,
     justifyContent: 'center',
@@ -159,15 +166,8 @@ const styles = StyleSheet.create({
   buttonIcon: {
     marginRight: 10,
   },
-  resetButtonText: {
+  updateButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  backButton: {
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
   },
 }); 

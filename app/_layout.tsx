@@ -42,9 +42,10 @@ function useProtectedRoute() {
     const inTabsGroup = segments[0] === '(tabs)';
     const isSignupPage = segments[0] === 'signup';
     const isResetPasswordPage = segments[0] === 'reset-password';
+    const isUpdatePasswordPage = segments[0] === 'update-password';
 
-    if (!session && !inAuthGroup && !isSignupPage && !isResetPasswordPage) {
-      // Redirect to the login page if not authenticated and not on signup or reset password page
+    if (!session && !inAuthGroup && !isSignupPage && !isResetPasswordPage && !isUpdatePasswordPage) {
+      // Redirect to the login page if not authenticated and not on signup, reset password, or update password page
       router.replace('/login');
     } else if (session && !inTabsGroup) {
       // Redirect to the tabs if authenticated
@@ -64,6 +65,8 @@ function RootLayoutNav() {
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password-callback" options={{ headerShown: false }} />
+        <Stack.Screen name="update-password" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
