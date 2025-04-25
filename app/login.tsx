@@ -114,7 +114,7 @@ export default function LoginScreen() {
             style={[styles.forgotPasswordContainer, { alignSelf: 'center' }]}
             onPress={() => router.push('/reset-password')}
           >
-            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Reset or Forgot Password?</Text>
+            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
