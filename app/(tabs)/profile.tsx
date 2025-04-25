@@ -51,10 +51,40 @@ export default function ProfileScreen() {
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // User exists in auth but not in database, create a new profile
+          const { error: insertError } = await supabase
+            .from('user')
+            .insert([
+              {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || null,
+                avatar_url: null,
+              }
+            ]);
+
+          if (insertError) throw insertError;
+
+          // Fetch the newly created profile
+          const { data: newData, error: fetchError } = await supabase
+            .from('user')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (fetchError) throw fetchError;
+          setProfile(newData);
+        } else {
+          throw error;
+        }
+      } else {
+        setProfile(data);
+      }
 
       // If there's an avatar URL, download and cache it locally
-      if (data.avatar_url) {
+      if (data?.avatar_url) {
         const fileName = `${user.id}.jpg`;
         const localPath = `${FileSystem.cacheDirectory}${fileName}`;
         
@@ -78,11 +108,10 @@ export default function ProfileScreen() {
           setLocalImagePath(null);
         }
       }
-
-      setProfile(data);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      Alert.alert('Error', errorMessage);
+      console.error('Error fetching profile:', errorMessage);
+      Alert.alert('Error', 'Failed to load profile. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -390,12 +419,18 @@ export default function ProfileScreen() {
         </View>
 
         <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <TouchableOpacity style={[styles.button, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity 
+            style={[styles.button, { borderBottomColor: colors.border }]}
+            onPress={() => router.push('/settings')}
+          >
             <Ionicons name="settings-outline" size={24} color={colors.primary} />
             <Text style={[styles.buttonText, { color: colors.text }]}>Settings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity 
+            style={[styles.button, { borderBottomColor: colors.border }]}
+            onPress={() => router.push('/help')}
+          >
             <Ionicons name="help-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.buttonText, { color: colors.text }]}>Help & Support</Text>
           </TouchableOpacity>
