@@ -384,7 +384,7 @@ export default function ProfileScreen() {
               onPress={removeAvatar}
               disabled={uploading}
             >
-              <Text style={[styles.removeAvatarText, { color: colors.accent }]}>Remove Photo</Text>
+              <Text style={[styles.removeAvatarText, { color: colors.primary }]}>Remove Photo</Text>
             </TouchableOpacity>
           )}
         </View>
