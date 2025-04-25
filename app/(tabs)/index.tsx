@@ -26,7 +26,7 @@ export default function HomeScreen() {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Get the user's information from the users table
+        // Get the user's information from the user table
         const { data, error } = await supabase
           .from('user')
           .select('full_name')
@@ -34,11 +34,12 @@ export default function HomeScreen() {
           .single();
         
         if (error) {
-          console.error('Error fetching user:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('Error fetching user:', errorMessage);
           return;
         }
 
-        if (data && data.full_name) {
+        if (data?.full_name) {
           setUserName(data.full_name);
         } else {
           // If no full_name exists, use email as fallback
@@ -158,14 +159,13 @@ export default function HomeScreen() {
                         : theme === 'dark' 
                           ? 'rgba(255, 255, 255, 0.2)' 
                           : 'rgba(0, 0, 0, 0.1)',
-                      outlineWidth: 1,
-                      outlineStyle: 'solid',
-                      outlineColor: isSeasonalThemeEnabled 
+                      borderWidth: 1,
+                      borderStyle: 'solid',
+                      borderColor: isSeasonalThemeEnabled 
                         ? colors.primary 
                         : theme === 'dark'
                           ? 'rgba(255, 255, 255, 0.3)'
-                          : 'rgba(0, 0, 0, 0.2)',
-                      outlineOffset: 0
+                          : 'rgba(0, 0, 0, 0.2)'
                     }
                   ]}
                 >

@@ -71,16 +71,18 @@ export default function ProfileScreen() {
           } else {
             setLocalImagePath(localPath);
           }
-        } catch (error) {
-          console.error('Error caching avatar:', error);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('Error caching avatar:', errorMessage);
           // If caching fails, just use the remote URL
           setLocalImagePath(null);
         }
       }
 
       setProfile(data);
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -161,15 +163,13 @@ export default function ProfileScreen() {
   const processAndUploadImage = async (uri: string) => {
     try {
       setUploading(true);
-      console.log('Starting image upload process...');
+      console.log('Starting image upload process');
 
       // Get the user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
-      console.log('User found:', user.id);
 
       // First convert to JPEG if needed and resize to a smaller size
-      console.log('Converting and resizing image...');
       const processedImage = await ImageManipulator.manipulateAsync(
         uri,
         [
@@ -180,36 +180,28 @@ export default function ProfileScreen() {
           format: ImageManipulator.SaveFormat.JPEG
         }
       );
-      console.log('Image processed:', processedImage.uri);
 
       // Convert image to blob
-      console.log('Converting image to blob...');
       const response = await fetch(processedImage.uri);
       if (!response.ok) {
-        console.error('Fetch response not ok:', response.status, response.statusText);
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
       }
       const blob = await response.blob();
-      console.log('Blob created, size:', blob.size);
 
       // Upload to Supabase Storage
       const fileExt = 'jpg';
       const fileName = `${user.id}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
-      console.log('Preparing to upload to:', filePath);
 
       // First, try to delete any existing avatar
       try {
-        console.log('Attempting to delete existing avatar...');
         await supabase.storage
           .from('avatars')
           .remove([filePath]);
-        console.log('Existing avatar deleted');
       } catch (error) {
-        console.log('No existing avatar to delete');
+        // Ignore error if no existing avatar
       }
 
-      console.log('Uploading new avatar...');
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, blob, {
@@ -217,30 +209,20 @@ export default function ProfileScreen() {
           upsert: true
         });
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-      console.log('Avatar uploaded successfully');
+      if (uploadError) throw uploadError;
 
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
-      console.log('Public URL generated:', publicUrl);
 
       // Update the profile
-      console.log('Updating user profile...');
       const { error: updateError } = await supabase
         .from('user')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) {
-        console.error('Profile update error:', updateError);
-        throw updateError;
-      }
-      console.log('Profile updated successfully');
+      if (updateError) throw updateError;
 
       // Update local state with the new avatar URL
       setProfile(prev => {
@@ -261,8 +243,8 @@ export default function ProfileScreen() {
       
       Alert.alert('Success', 'Profile picture updated!');
     } catch (error) {
-      console.error('Upload error details:', error);
-      Alert.alert('Error', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setUploading(false);
       setShowOptions(false);
@@ -284,7 +266,7 @@ export default function ProfileScreen() {
         await supabase.storage
           .from('avatars')
           .remove([filePath]);
-      } catch (error) {
+      } catch (error: unknown) {
         console.log('No avatar to delete from storage');
       }
 
@@ -301,8 +283,9 @@ export default function ProfileScreen() {
       setLocalImagePath(null);
       
       Alert.alert('Success', 'Profile picture removed!');
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setUploading(false);
     }
@@ -319,8 +302,9 @@ export default function ProfileScreen() {
       
       // Navigate to login screen
       router.replace('/login');
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }

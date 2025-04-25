@@ -62,7 +62,7 @@ export default function SignUpScreen() {
 
     try {
       setLoading(true);
-      console.log('Starting signup process for email:', email);
+      console.log('Starting signup process');
       
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -75,11 +75,11 @@ export default function SignUpScreen() {
         },
       });
 
-      console.log('Signup response:', { user, error: signUpError });
-
       if (signUpError) {
-        console.error('Signup error:', signUpError);
-        if (signUpError.message.includes('already registered')) {
+        const errorMessage = signUpError instanceof Error ? signUpError.message : 'Unknown error';
+        console.error('Signup error:', errorMessage);
+        
+        if (errorMessage.includes('already registered')) {
           Alert.alert(
             'Account Exists',
             'An account with this email already exists. Please try logging in instead.',
@@ -100,7 +100,7 @@ export default function SignUpScreen() {
       }
 
       if (user) {
-        console.log('User created successfully:', user);
+        console.log('User created successfully');
         Alert.alert(
           'Account Created',
           'Your account has been created. Please check your email (including spam folder) for the verification link. If you don\'t receive it within a few minutes, try logging in to request a new verification email.',
@@ -112,7 +112,7 @@ export default function SignUpScreen() {
           ]
         );
       } else {
-        console.log('No user returned but also no error');
+        console.log('Account creation in progress');
         Alert.alert(
           'Signup Status',
           'Your account creation is being processed. Please check your email for verification instructions.',
@@ -124,13 +124,15 @@ export default function SignUpScreen() {
           ]
         );
       }
-    } catch (error: any) {
-      console.error('Signup process error:', error);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error('Signup process error:', errorMessage);
+      
       Alert.alert(
         'Error',
-        error.message === 'User already registered'
+        errorMessage === 'User already registered'
           ? 'This email is already registered. Please try logging in instead.'
-          : `Signup error: ${error.message}`
+          : `Signup error: ${errorMessage}`
       );
     } finally {
       setLoading(false);
