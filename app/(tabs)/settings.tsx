@@ -17,7 +17,7 @@ import { router } from 'expo-router';
 import { useTheme } from '@/lib/ThemeContext';
 
 export default function SettingsScreen() {
-  const { colors } = useTheme();
+  const { colors, theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [newName, setNewName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -204,6 +204,101 @@ export default function SettingsScreen() {
         styles.cardsContainer,
         isGoogleUser && styles.googleUserCardsContainer
       ]}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Theme Settings</Text>
+          <View style={styles.themeGrid}>
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'light' && styles.selectedTheme,
+                { borderColor: colors.border }
+              ]}
+              onPress={() => setTheme('light')}
+            >
+              <Ionicons name="sunny-outline" size={24} color={theme === 'light' ? colors.primary : colors.text} />
+              <Text style={[
+                styles.themeText,
+                { color: theme === 'light' ? colors.primary : colors.text }
+              ]}>Light</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'dark' && styles.selectedTheme,
+                { borderColor: colors.border }
+              ]}
+              onPress={() => setTheme('dark')}
+            >
+              <Ionicons name="moon-outline" size={24} color={theme === 'dark' ? colors.primary : colors.text} />
+              <Text style={[
+                styles.themeText,
+                { color: theme === 'dark' ? colors.primary : colors.text }
+              ]}>Dark</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'spring' && styles.selectedTheme,
+                { borderColor: colors.border }
+              ]}
+              onPress={() => setTheme('spring')}
+            >
+              <Ionicons name="flower-outline" size={24} color={theme === 'spring' ? colors.primary : colors.text} />
+              <Text style={[
+                styles.themeText,
+                { color: theme === 'spring' ? colors.primary : colors.text }
+              ]}>Spring</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'summer' && styles.selectedTheme,
+                { borderColor: colors.border }
+              ]}
+              onPress={() => setTheme('summer')}
+            >
+              <Ionicons name="sunny" size={24} color={theme === 'summer' ? colors.primary : colors.text} />
+              <Text style={[
+                styles.themeText,
+                { color: theme === 'summer' ? colors.primary : colors.text }
+              ]}>Summer</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'autumn' && styles.selectedTheme,
+                { borderColor: colors.border }
+              ]}
+              onPress={() => setTheme('autumn')}
+            >
+              <Ionicons name="leaf-outline" size={24} color={theme === 'autumn' ? colors.primary : colors.text} />
+              <Text style={[
+                styles.themeText,
+                { color: theme === 'autumn' ? colors.primary : colors.text }
+              ]}>Autumn</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'winter' && styles.selectedTheme,
+                { borderColor: colors.border }
+              ]}
+              onPress={() => setTheme('winter')}
+            >
+              <Ionicons name="snow-outline" size={24} color={theme === 'winter' ? colors.primary : colors.text} />
+              <Text style={[
+                styles.themeText,
+                { color: theme === 'winter' ? colors.primary : colors.text }
+              ]}>Winter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
           
@@ -424,5 +519,31 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 16,
     textAlign: 'center',
+  },
+  themeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+    paddingTop: 8,
+  },
+  themeOption: {
+    width: '47%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+    marginBottom: 12,
+  },
+  selectedTheme: {
+    backgroundColor: colors => colors.accent + '20',
+    borderColor: colors => colors.primary,
+  },
+  themeText: {
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: '500',
   },
 }); 

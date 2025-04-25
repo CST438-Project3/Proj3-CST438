@@ -28,12 +28,13 @@ type Profile = {
 };
 
 export default function ProfileScreen() {
-  const { colors } = useTheme();
+  const { colors, theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [localImagePath, setLocalImagePath] = useState<string | null>(null);
+  const [showThemes, setShowThemes] = useState(false);
 
   useEffect(() => {
     getProfile();
@@ -349,7 +350,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView style={[styles.scrollContainer, { backgroundColor: colors.background }]} contentContainerStyle={styles.scrollContent}>
+    <ScrollView 
+      style={[styles.scrollContainer, { backgroundColor: colors.background }]} 
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity 
@@ -444,6 +449,141 @@ export default function ProfileScreen() {
             <Ionicons name="help-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.buttonText, { color: colors.text }]}>Help & Support</Text>
           </TouchableOpacity>
+
+          <View>
+            <TouchableOpacity 
+              style={[styles.button, { borderBottomColor: showThemes ? colors.border : 'transparent' }]}
+              onPress={() => setShowThemes(!showThemes)}
+            >
+              <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
+              <Text style={[styles.buttonText, { color: colors.text }]}>Theme</Text>
+              <View style={styles.expandIconContainer}>
+                <Ionicons 
+                  name={showThemes ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color={colors.text + '80'} 
+                />
+              </View>
+            </TouchableOpacity>
+
+            {showThemes && (
+              <View style={styles.themeList}>
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'light' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('light')}
+                >
+                  <Ionicons 
+                    name="sunny-outline" 
+                    size={24} 
+                    color={theme === 'light' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'light' ? colors.primary : colors.text }
+                  ]}>Light</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'dark' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('dark')}
+                >
+                  <Ionicons 
+                    name="moon-outline" 
+                    size={24} 
+                    color={theme === 'dark' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'dark' ? colors.primary : colors.text }
+                  ]}>Dark</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'spring' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('spring')}
+                >
+                  <Ionicons 
+                    name="flower-outline" 
+                    size={24} 
+                    color={theme === 'spring' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'spring' ? colors.primary : colors.text }
+                  ]}>Spring</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'summer' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('summer')}
+                >
+                  <Ionicons 
+                    name="sunny" 
+                    size={24} 
+                    color={theme === 'summer' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'summer' ? colors.primary : colors.text }
+                  ]}>Summer</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'autumn' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('autumn')}
+                >
+                  <Ionicons 
+                    name="leaf-outline" 
+                    size={24} 
+                    color={theme === 'autumn' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'autumn' ? colors.primary : colors.text }
+                  ]}>Autumn</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomWidth: 0 },
+                    theme === 'winter' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('winter')}
+                >
+                  <Ionicons 
+                    name="snow-outline" 
+                    size={24} 
+                    color={theme === 'winter' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'winter' ? colors.primary : colors.text }
+                  ]}>Winter</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
 
           <TouchableOpacity style={[styles.button, styles.lastButton]} onPress={signOut}>
             <Ionicons name="log-out-outline" size={24} color="#DB4437" />
@@ -562,5 +702,31 @@ const styles = StyleSheet.create({
   removeAvatarText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: colors => colors.text,
+  },
+  expandIconContainer: {
+    marginLeft: 'auto',
+    paddingRight: 8,
+  },
+  themeList: {
+    paddingLeft: 48, // Aligns with other menu items text
+  },
+  themeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    gap: 12,
+  },
+  themeButtonText: {
+    fontSize: 16,
+  },
+  selectedTheme: {
+    backgroundColor: colors => colors.accent + '10',
   },
 }); 
