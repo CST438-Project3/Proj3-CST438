@@ -117,14 +117,13 @@ export default function LoginScreen() {
                         : theme === 'dark' 
                           ? 'rgba(255, 255, 255, 0.2)' 
                           : 'rgba(0, 0, 0, 0.1)',
-                      outlineWidth: 1,
-                      outlineStyle: 'solid',
-                      outlineColor: isSeasonalThemeEnabled 
+                      borderWidth: 1,
+                      borderStyle: 'solid',
+                      borderColor: isSeasonalThemeEnabled 
                         ? colors.primary 
                         : theme === 'dark'
                           ? 'rgba(255, 255, 255, 0.3)'
                           : 'rgba(0, 0, 0, 0.2)',
-                      outlineOffset: 0
                     }
                   ]}
                 >
@@ -292,7 +291,10 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={[styles.forgotPasswordContainer, { alignSelf: 'center' }]}>
+          <TouchableOpacity 
+            style={[styles.forgotPasswordContainer, { alignSelf: 'center' }]}
+            onPress={() => router.push('/reset-password')}
+          >
             <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Reset or Forgot Password?</Text>
           </TouchableOpacity>
 
