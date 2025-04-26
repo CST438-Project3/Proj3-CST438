@@ -9,6 +9,9 @@ import {
   Keyboard,
   Alert,
   Image,
+  ViewStyle,
+  TextStyle,
+  ImageStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -68,9 +71,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => {
-      Keyboard.dismiss();
-    }}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headerContainer}>
           <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
@@ -150,7 +151,7 @@ export default function LoginScreen() {
             </View>
           </TouchableOpacity>
 
-          <View style={styles.signupContainer}>
+          <View style={styles.loginContainer}>
             <Text style={[styles.noAccountText, { color: colors.text }]}>Don't have an account? </Text>
             <TouchableOpacity 
               style={styles.signupButton}
@@ -173,12 +174,65 @@ export default function LoginScreen() {
             </View>
           </TouchableOpacity>
         </View>
+
+        <View style={[styles.footerContainer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+          <View style={styles.plantIconsContainer}>
+            <Ionicons 
+              name="beaker-outline" 
+              size={28} 
+              color={colors.primary} 
+              style={{ 
+                transform: [
+                  { rotate: '135deg' },
+                  { scaleX: -1 }
+                ] 
+              }} 
+            />
+            <Ionicons 
+              name="water" 
+              size={32} 
+              color={colors.primary} 
+            />
+            <Ionicons 
+              name="flower-outline" 
+              size={28} 
+              color={colors.primary} 
+            />
+          </View>
+        </View>
       </View>
     </TouchableWithoutFeedback>
   );
 }
 
-const styles = StyleSheet.create({
+type StylesType = {
+  container: ViewStyle;
+  headerContainer: ViewStyle;
+  logoContainer: ViewStyle;
+  logo: ImageStyle;
+  taglineText: TextStyle;
+  formContainer: ViewStyle;
+  inputContainer: ViewStyle;
+  inputIcon: TextStyle;
+  input: TextStyle;
+  eyeIcon: ViewStyle;
+  loginButton: ViewStyle;
+  buttonContent: ViewStyle;
+  buttonIcon: TextStyle;
+  loginButtonText: TextStyle;
+  googleButton: ViewStyle;
+  googleButtonText: TextStyle;
+  loginContainer: ViewStyle;
+  noAccountText: TextStyle;
+  signupButton: ViewStyle;
+  signupText: TextStyle;
+  forgotPasswordContainer: ViewStyle;
+  forgotPasswordText: TextStyle;
+  footerContainer: ViewStyle;
+  plantIconsContainer: ViewStyle;
+};
+
+const styles = StyleSheet.create<StylesType>({
   container: {
     flex: 1,
     padding: 20,
@@ -263,7 +317,7 @@ const styles = StyleSheet.create({
   googleButtonText: {
     color: '#333333',
   },
-  signupContainer: {
+  loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -286,5 +340,18 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#76A97F',
     fontWeight: '600',
+  },
+  footerContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+  },
+  plantIconsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 40,
   },
 }); 
