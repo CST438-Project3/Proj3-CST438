@@ -144,26 +144,8 @@ export default function SignUpScreen() {
           }
         ]
       );
-    } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create account');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignUp = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'iWetMyPlants://login-callback',
-        },
-      });
-
-      if (error) throw error;
-    } catch (error: unknown) {
-      Alert.alert('Error', (error as Error).message);
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
     }
@@ -293,20 +275,6 @@ export default function SignUpScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.googleButton, { 
-              backgroundColor: colors.card,
-              borderColor: colors.border 
-            }]}
-            onPress={handleGoogleSignUp}
-            disabled={loading}
-          >
-            <View style={styles.buttonContent}>
-              <Ionicons name="logo-google" size={24} color="#DB4437" style={styles.buttonIcon} />
-              <Text style={[styles.googleButtonText, { color: colors.text }]}>Sign in with Google</Text>
-            </View>
-          </TouchableOpacity>
-
           <View style={styles.loginContainer}>
             <Text style={[styles.haveAccountText, { color: colors.text }]}>Already have an account? </Text>
             <TouchableOpacity 
@@ -400,18 +368,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   signupButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  googleButton: {
-    borderRadius: 15,
-    height: 55,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-  },
-  googleButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
   },
