@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity, Animated } from 'react-native';
+import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity, Animated, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -185,6 +185,24 @@ export default function HomeScreen() {
                   </Animated.View>
                 </TouchableOpacity>
               </View>
+
+              <TouchableOpacity 
+                style={[styles.menuItem, { 
+                  borderTopColor: colors.border,
+                  borderTopWidth: 1,
+                  padding: 10,
+                }]}
+                onPress={() => {
+                  setShowMenu(false);
+                  router.push('/add-plant');
+                }}
+              >
+                <View style={styles.buttonContent}>
+                  <Ionicons name="add-circle-outline" size={14} color={colors.primary} style={styles.buttonIcon} />
+                  <Ionicons name="flower-outline" size={14} color={colors.primary} style={styles.buttonIcon} />
+                  <Text style={[styles.menuItemText, { color: colors.text, fontSize: 14 }]}>Add Plants</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -335,5 +353,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuItemText: {
+    fontWeight: '600',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
 });
