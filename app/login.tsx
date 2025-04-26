@@ -126,13 +126,6 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity 
-            style={[styles.forgotPasswordContainer, { alignSelf: 'center' }]}
-            onPress={() => router.push('/reset-password')}
-          >
-            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
             style={[styles.loginButton, { backgroundColor: colors.primary }]} 
             onPress={handleLogin} 
             disabled={loading}
@@ -169,6 +162,16 @@ export default function LoginScreen() {
               </View>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity 
+            style={[styles.forgotPasswordContainer, { alignSelf: 'center', marginTop: 20 }]}
+            onPress={() => router.push('/reset-password')}
+          >
+            <View style={styles.buttonContent}>
+              <Ionicons name="key-outline" size={18} color={colors.primary} style={styles.buttonIcon} />
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -232,13 +235,6 @@ const styles = StyleSheet.create({
   eyeIcon: {
     padding: 8,
   },
-  forgotPasswordContainer: {
-    marginBottom: 20,
-  },
-  forgotPasswordText: {
-    color: '#76A97F',
-    fontWeight: '600',
-  },
   loginButton: {
     backgroundColor: '#76A97F',
     borderRadius: 15,
@@ -283,5 +279,12 @@ const styles = StyleSheet.create({
   signupText: {
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  forgotPasswordContainer: {
+    marginBottom: 20,
+  },
+  forgotPasswordText: {
+    color: '#76A97F',
+    fontWeight: '600',
   },
 }); 
