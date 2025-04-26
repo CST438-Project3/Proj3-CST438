@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -54,6 +55,13 @@ export default function ResetPasswordScreen() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headerContainer}>
+          <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
+            <Image 
+              source={require('@/assets/images/iWetMyPlants Logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={[styles.title, { color: colors.primary }]}>Reset Password</Text>
           <Text style={[styles.subtitle, { color: colors.text }]}>
             Enter your email address and we'll send you a link to reset your password
@@ -114,6 +122,23 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
     marginBottom: 40,
+  },
+  logoContainer: {
+    width: 160,
+    height: 160,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  logo: {
+    width: 160,
+    height: 160,
   },
   title: {
     fontSize: 24,
