@@ -2,11 +2,12 @@ import { TextStyle, ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { supabase } from '@/lib/supabase';
 
 export default function HomeScreen() {
   return (
     <ThemedView style={$titleContainer}>
-      <ThemedText type={'title'} style={$titleText}>Plant Gainz</ThemedText>
+      <ThemedText type={'title'} style={$titleText}>iWetMyPlants</ThemedText>
       <ThemedText type='subtitle' style={$subText}>Keep your plants healthy and thriving without forgetting their care needs!</ThemedText>
     </ThemedView>
   );
