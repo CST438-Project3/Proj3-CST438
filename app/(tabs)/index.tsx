@@ -3,6 +3,8 @@ import { ScrollView, StyleSheet, View, ImageBackground, Pressable } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 
+import { supabase } from '@/lib/supabase';
+
 import { ThemedText } from '@/components/ThemedText';
 import { Header } from '@/components/Header';
 import { FilterTabs } from '@/components/FilterTabs';
