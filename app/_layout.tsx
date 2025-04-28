@@ -3,12 +3,14 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback } from 'react';
+import { View } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import * as Sentry from '@sentry/react-native';
 
+// Initialize Sentry
 Sentry.init({
   dsn: 'https://e41dd0c787af3b672353a2fa05b9c564@o4509117947510784.ingest.us.sentry.io/4509117952688128',
   replaysSessionSampleRate: 0.1,
@@ -20,13 +22,8 @@ Sentry.init({
       maskAllVectors: true,
     }),
   ],
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   spotlight: __DEV__,
 });
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
 
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
@@ -34,19 +31,28 @@ export default Sentry.wrap(function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  useEffect(() => {
+  const onLayoutRootView = useCallback(async () => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      try {
+        await SplashScreen.hideAsync();
+      } catch (e) {
+        // Ignore splash screen errors
+      }
     }
   }, [loaded]);
 
   if (!loaded) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }} />
+    );
   }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack onLayout={onLayoutRootView}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
