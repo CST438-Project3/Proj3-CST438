@@ -4,6 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
 
+import { Button } from 'react-native'; 
+import { populatePlantDatabase } from '@/lib/populatePlantDatabase';
+
 export default function PlantsScreen() {
   // Example data - replace with your database data
   const allPlants = [
@@ -41,6 +44,8 @@ export default function PlantsScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
+            {/* <Button title="Populate Plants" onPress={populatePlantDatabase} /> */}
+
             <View style={styles.plantsGrid}>
               {allPlants.map((plant) => (
                 <PlantCard

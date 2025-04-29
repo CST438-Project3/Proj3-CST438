@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.cst438.plantgainz",
+      "package": "com.cst438.plantgainz"
     },
     "web": {
       "bundler": "metro",
@@ -52,7 +52,8 @@
       },
       "eas": {
         "projectId": "6ea51141-8ad6-42cd-b03a-39268d440d48"
-      }
+      },
+      "TREFLE_API_KEY": "AEPzcMkX9imnxKJb1pwC-WxuwfqJWXHwQ3TOQxzxEcI"
     },
     "owner": "jameslindfors-csumb"
   }
