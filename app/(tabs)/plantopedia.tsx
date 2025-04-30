@@ -20,6 +20,12 @@ type Plant = {
   imageUrl: string | null;
 };
 
+const capitalizeWords = (str: string) => {
+  return str.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+};
+
 export default function PlantopediaScreen() {
   const { colors } = useTheme();
   const [plants, setPlants] = useState<Plant[]>([]);
@@ -76,7 +82,7 @@ export default function PlantopediaScreen() {
           <IconSymbol name="plus" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.plantName, { color: colors.text }]}>{item.plantName}</Text>
+      <Text style={[styles.plantName, { color: colors.text }]}>{capitalizeWords(item.plantName)}</Text>
     </TouchableOpacity>
   );
 
