@@ -44,7 +44,7 @@ export default function PlantsScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* <Button title="Populate Plants" onPress={populatePlantDatabase} /> */}
+            <Button title="Populate Plants" onPress={populatePlantDatabase} />
 
             <View style={styles.plantsGrid}>
               {allPlants.map((plant) => (
