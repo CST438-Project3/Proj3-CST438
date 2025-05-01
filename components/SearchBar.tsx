@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -22,14 +22,32 @@ interface SearchBarProps {
 export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantSelect }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const { colors } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const { plants, loading, searchPlants } = usePlants();
+  const debounceTimeout = useRef<NodeJS.Timeout>();
+
+  const debouncedSearch = useCallback((searchQuery: string) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      if (searchQuery.trim()) {
+        searchPlants(searchQuery);
+      } else {
+        searchPlants('');
+      }
+      setIsTyping(false);
+    }, 300);
+  }, [searchPlants]);
 
   const handleSearch = (text: string) => {
     setQuery(text);
+    setIsTyping(true);
     setShowSuggestions(true);
-    searchPlants(text);
+    debouncedSearch(text);
     onSearch?.(text);
   };
 
@@ -46,16 +64,14 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
     onSearch?.('');
   };
 
-  // Debounce search to prevent too many API calls
+  // Cleanup timeout on unmount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query) {
-        searchPlants(query);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
       }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query]);
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -70,7 +86,7 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
           onChangeText={handleSearch}
           onFocus={() => setShowSuggestions(true)}
         />
-        {loading ? (
+        {(loading || isTyping) ? (
           <ActivityIndicator color={colors.primary} style={styles.loadingIndicator} />
         ) : query.length > 0 ? (
           <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
@@ -79,26 +95,41 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
         ) : null}
       </View>
       
-      {showSuggestions && plants.length > 0 && (
+      {showSuggestions && (plants.length > 0 || loading || isTyping) && (
         <View style={[styles.suggestionsContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <FlatList
-            data={plants}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
-                onPress={() => handleSuggestionPress(item.id)}
-              >
-                <View style={styles.suggestionContent}>
-                  <ThemedText style={styles.plantName}>{item.name}</ThemedText>
-                  <ThemedText style={[styles.scientificName, { color: colors.text + '80' }]}>
-                    {item.scientific_name}
-                  </ThemedText>
-                </View>
-              </TouchableOpacity>
-            )}
-            keyboardShouldPersistTaps="handled"
-          />
+          {loading || isTyping ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator color={colors.primary} />
+              <ThemedText style={[styles.loadingText, { color: colors.text + '80' }]}>
+                Searching plants...
+              </ThemedText>
+            </View>
+          ) : plants.length > 0 ? (
+            <FlatList
+              data={plants}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
+                  onPress={() => handleSuggestionPress(item.id)}
+                >
+                  <View style={styles.suggestionContent}>
+                    <ThemedText style={styles.plantName}>{item.name}</ThemedText>
+                    <ThemedText style={[styles.scientificName, { color: colors.text + '80' }]}>
+                      {item.scientific_name}
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+              )}
+              keyboardShouldPersistTaps="handled"
+            />
+          ) : (
+            <View style={styles.noResultsContainer}>
+              <ThemedText style={[styles.noResultsText, { color: colors.text + '80' }]}>
+                No plants found
+              </ThemedText>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -157,5 +188,21 @@ const styles = StyleSheet.create({
   scientificName: {
     fontSize: 14,
     fontStyle: 'italic',
+  },
+  loadingContainer: {
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 14,
+  },
+  noResultsContainer: {
+    padding: 15,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    fontSize: 14,
   },
 });
