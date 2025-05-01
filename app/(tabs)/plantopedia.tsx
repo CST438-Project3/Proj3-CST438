@@ -9,21 +9,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Alert,
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { addPlantToUser } from '@/services/userPlantService';
 
 type Plant = {
   id: string;
   plantName: string;
   imageUrl: string | null;
-};
-
-const capitalizeWords = (str: string) => {
-  return str.split(' ').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-  ).join(' ');
 };
 
 export default function PlantopediaScreen() {
@@ -39,11 +35,7 @@ export default function PlantopediaScreen() {
   const fetchPlants = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('plant')
-        .select('*')
-        .order('plantName');
-
+      const { data, error } = await supabase.from('plant').select('*').order('plantName');
       if (error) throw error;
       setPlants(data || []);
     } catch (err) {
@@ -53,25 +45,30 @@ export default function PlantopediaScreen() {
     }
   };
 
-  const handleAddPlant = (plant: Plant) => {
-    // TODO: Implement add plant functionality
-    console.log('Adding plant:', plant);
+  const handleAddPlant = async (plant: Plant) => {
+    try {
+      await addPlantToUser(parseInt(plant.id), plant.plantName);
+      Alert.alert('✅ Added!', `${plant.plantName} was added to your collection.`);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to add plant.');
+    }
+  };
+
+  const capitalizeWords = (str: string) => {
+    return str
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   };
 
   const renderPlantItem = ({ item }: { item: Plant }) => (
     <TouchableOpacity
       style={[styles.plantCard, { backgroundColor: colors.card }]}
-      onPress={() => {
-        // TODO: Navigate to plant details
-      }}
+      onPress={() => {}}
     >
       <View style={styles.imageContainer}>
         {item.imageUrl ? (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.plantImage}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: item.imageUrl }} style={styles.plantImage} resizeMode="cover" />
         ) : (
           <View style={[styles.plantImage, { backgroundColor: colors.border }]} />
         )}
@@ -96,7 +93,7 @@ export default function PlantopediaScreen() {
 
   if (error) {
     return (
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[styles.errorContainer, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
       >
@@ -128,9 +125,7 @@ export default function PlantopediaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   listContent: {
     padding: 16,
     paddingTop: 64,
@@ -147,9 +142,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  imageContainer: {
-    position: 'relative',
-  },
+  imageContainer: { position: 'relative' },
   plantImage: {
     width: '100%',
     height: 150,
@@ -201,4 +194,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-}); 
+});
