@@ -1,28 +1,30 @@
 import { supabase } from '@/lib/supabase';
 
-export const addPlantToUser = async (plantId: number, plantName: string) => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) throw new Error('User not authenticated');
+// Fetch all plants in a user's collection
+export const getUserPlants = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('collection')
+    .select('*, plant(*)')
+    .eq('userId', userId);
 
-  const userId = user.id;
+  if (error) {
+    console.error('❌ Error fetching user plants:', error.message);
+    return [];
+  }
 
-  // Count how many of this plant already exist for this user
-  const { data: existing, error: countError } = await supabase
-    .from('my_plants')
-    .select('nickname', { count: 'exact', head: false })
-    .eq('user_id', userId)
-    .eq('plant_id', plantId);
+  return data;
+};
 
-  if (countError) throw countError;
+// Add a specific plant to a user's collection
+export const addPlantToCollection = async (userId: string, plantId: number) => {
+  const { data, error } = await supabase
+    .from('collection')
+    .insert([{ userId, plantId }]);
 
-  const count = existing.length;
-  const nickname = count === 0 ? plantName : `${plantName} #${count + 1}`;
+  if (error) {
+    console.error('❌ Error adding plant to collection:', error.message);
+    return null;
+  }
 
-  const { error: insertError } = await supabase
-    .from('my_plants')
-    .insert([{ user_id: userId, plant_id: plantId, nickname }]);
-
-  if (insertError) throw insertError;
-
-  return nickname;
+  return data;
 };

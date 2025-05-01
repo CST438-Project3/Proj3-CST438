@@ -14,7 +14,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { addPlantToUser } from '@/services/userPlantService';
+import { addPlantToCollection } from '@/services/userPlantService';
 
 type Plant = {
   id: string;
@@ -46,11 +46,25 @@ export default function PlantopediaScreen() {
   };
 
   const handleAddPlant = async (plant: Plant) => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+  
+    if (userError || !user) {
+      Alert.alert('Error', 'You must be logged in to add plants.');
+      return;
+    }
+  
     try {
-      await addPlantToUser(parseInt(plant.id), plant.plantName);
-      Alert.alert('✅ Added!', `${plant.plantName} was added to your collection.`);
+      const result = await addPlantToCollection(user.id, parseInt(plant.id));
+      if (result) {
+        console.log(`✅ ${plant.plantName} added to collection by user ${user.id}`);
+        Alert.alert('✅ Plant Added', `${plant.plantName} was successfully added to your My Plants list.`);
+      }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to add plant.');
+      console.error('❌ Error adding plant to collection:', error.message);
+      Alert.alert('❌ Add Failed', error.message || 'Failed to add plant to collection.');
     }
   };
 
