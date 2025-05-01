@@ -5,10 +5,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
 import { useTheme } from '@/lib/ThemeContext';
 import { supabase } from '@/lib/supabase';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function PlantsScreen() {
   const { colors } = useTheme();
   const [myPlants, setMyPlants] = useState<any[]>([]);
+  const isFocused = useIsFocused();
 
   const fetchMyPlants = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -25,8 +27,10 @@ export default function PlantsScreen() {
   };
 
   useEffect(() => {
-    fetchMyPlants();
-  }, []);
+    if (isFocused) {
+      fetchMyPlants();
+    }
+  }, [isFocused]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
