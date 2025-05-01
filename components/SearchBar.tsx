@@ -6,46 +6,56 @@ import {
   TouchableOpacity,
   FlatList,
   Keyboard,
-  TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/ThemeContext';
 import { ThemedText } from './ThemedText';
+import { usePlants } from '@/hooks/usePlants';
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
-  suggestions?: string[];
+  onSearch?: (query: string) => void;
   placeholder?: string;
+  onPlantSelect?: (plantId: number) => void;
 }
 
-export function SearchBar({ onSearch, suggestions = [], placeholder = 'Search...' }: SearchBarProps) {
+export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantSelect }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { colors } = useTheme();
   const inputRef = useRef<TextInput>(null);
+  const { plants, loading, searchPlants } = usePlants();
 
   const handleSearch = (text: string) => {
     setQuery(text);
     setShowSuggestions(true);
-    onSearch(text);
+    searchPlants(text);
+    onSearch?.(text);
   };
 
-  const handleSuggestionPress = (suggestion: string) => {
-    setQuery(suggestion);
+  const handleSuggestionPress = (plantId: number) => {
     setShowSuggestions(false);
-    onSearch(suggestion);
+    onPlantSelect?.(plantId);
     Keyboard.dismiss();
   };
 
   const handleClear = () => {
     setQuery('');
     setShowSuggestions(false);
-    onSearch('');
+    searchPlants('');
+    onSearch?.('');
   };
 
-  const filteredSuggestions = suggestions.filter(suggestion =>
-    suggestion.toLowerCase().includes(query.toLowerCase())
-  );
+  // Debounce search to prevent too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query) {
+        searchPlants(query);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   return (
     <View style={styles.container}>
@@ -60,24 +70,31 @@ export function SearchBar({ onSearch, suggestions = [], placeholder = 'Search...
           onChangeText={handleSearch}
           onFocus={() => setShowSuggestions(true)}
         />
-        {query.length > 0 && (
+        {loading ? (
+          <ActivityIndicator color={colors.primary} style={styles.loadingIndicator} />
+        ) : query.length > 0 ? (
           <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
             <Ionicons name="close-circle" size={20} color={colors.text + '80'} />
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
       
-      {showSuggestions && filteredSuggestions.length > 0 && (
+      {showSuggestions && plants.length > 0 && (
         <View style={[styles.suggestionsContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <FlatList
-            data={filteredSuggestions}
-            keyExtractor={(item) => item}
+            data={plants}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[styles.suggestionItem, { borderBottomColor: colors.border }]}
-                onPress={() => handleSuggestionPress(item)}
+                onPress={() => handleSuggestionPress(item.id)}
               >
-                <ThemedText>{item}</ThemedText>
+                <View style={styles.suggestionContent}>
+                  <ThemedText style={styles.plantName}>{item.name}</ThemedText>
+                  <ThemedText style={[styles.scientificName, { color: colors.text + '80' }]}>
+                    {item.scientific_name}
+                  </ThemedText>
+                </View>
               </TouchableOpacity>
             )}
             keyboardShouldPersistTaps="handled"
@@ -112,12 +129,15 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 5,
   },
+  loadingIndicator: {
+    padding: 5,
+  },
   suggestionsContainer: {
     position: 'absolute',
     top: 60,
     left: 0,
     right: 0,
-    maxHeight: 200,
+    maxHeight: 300,
     borderRadius: 10,
     borderWidth: 1,
     zIndex: 1000,
@@ -125,5 +145,17 @@ const styles = StyleSheet.create({
   suggestionItem: {
     padding: 15,
     borderBottomWidth: 1,
+  },
+  suggestionContent: {
+    flex: 1,
+  },
+  plantName: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  scientificName: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });
