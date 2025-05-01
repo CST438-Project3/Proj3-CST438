@@ -9,7 +9,6 @@ import {
   Keyboard,
   Alert,
   Animated,
-  PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';

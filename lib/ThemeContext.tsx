@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
-import Colors from '@/constants/Colors';
 
 export type Theme = 'light' | 'dark' | 'spring' | 'summer' | 'autumn' | 'winter';
 
