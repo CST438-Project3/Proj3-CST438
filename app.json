@@ -5,18 +5,25 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "plantgainz",
+    "scheme": ["plantgainz"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "developmentClient": {
+      "silentLaunch": true
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cst438.plantgainz"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.cst438.plantgainz",
+      "package": "com.cst438.plantgainz"
     },
     "web": {
       "bundler": "metro",
@@ -52,8 +59,10 @@
       },
       "eas": {
         "projectId": "6ea51141-8ad6-42cd-b03a-39268d440d48"
-      }
+      },
+      "TREFLE_API_KEY": "AEPzcMkX9imnxKJb1pwC-WxuwfqJWXHwQ3TOQxzxEcI"
     },
     "owner": "jameslindfors-csumb"
   }
 }
+

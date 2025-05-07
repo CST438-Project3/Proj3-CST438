@@ -1,52 +1,29 @@
-import { supabase } from '../supabase';
+import { supabase } from '@/lib/supabase';
 
-// get all plants for a user
-export const getPlants = async (userId: string) => {
+export const getAllPlants = async () => {
   const { data, error } = await supabase
-    .from('plants')
+    .from('plant')
     .select('*')
-    .eq('user_id', userId);
+    .order('plantName', { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('Error fetching plants:', error.message);
+    throw error;
+  }
+
   return data;
 };
 
-// add a new plant
-export const addPlant = async (
-  userId: string,
-  plantName: string,
-  plantFamily: string,
-  habitat: string,
-  description: string,
-  scientificName: string,
-  maxTemp: string,
-  minTemp: string,
-  light: string,
-  minPrecip: string,
-  maxPrecip: string,
-  growthRate: string,
-  toxicity: string,
-  wateringFreq: number,
-  notes?: string
-) => {
-  const { error } = await supabase.from('plants').insert({
-    user_id: userId,
-    plant_name: plantName,
-    plant_family: plantFamily,
-    habitat: habitat,
-    description: description,
-    scientific_name: scientificName,
-    max_temp: maxTemp,
-    min_temp: minTemp,
-    light: light,
-    min_precip: minPrecip,
-    max_precip: maxPrecip,
-    growth_rate: growthRate,
-    toxicity: toxicity,
-    watering_freq: wateringFreq,
-    last_watered: new Date().toISOString(),
-    notes: notes || '',
-  });
+export const deleteAllPlants = async () => {
+  const { error } = await supabase
+    .from('plant')
+    .delete()
+    .neq('id', 0); // delete where id != 0
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('Error deleting plants:', error.message);
+    throw error;
+  }
+
+  console.log('All plants deleted!');
 };
