@@ -3,8 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback } from 'react';
-import { View } from 'react-native';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -12,7 +11,6 @@ import * as Sentry from '@sentry/react-native';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 
-// Initialize Sentry
 Sentry.init({
   dsn: 'https://e41dd0c787af3b672353a2fa05b9c564@o4509117947510784.ingest.us.sentry.io/4509117952688128',
   replaysSessionSampleRate: 0.1,
@@ -24,6 +22,8 @@ Sentry.init({
       maskAllVectors: true,
     }),
   ],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   spotlight: __DEV__,
 });
 
@@ -47,11 +47,8 @@ function useProtectedRoute() {
     if (!session && !inAuthGroup && !isSignupPage && !isResetPasswordPage && !isUpdatePasswordPage) {
       // Redirect to the login page if not authenticated and not on signup, reset password, or update password page
       router.replace('/login');
-    } else if (
-      session &&
-      !inTabsGroup &&
-      !segments[0]?.startsWith('plants') // bypass to allow access to /plants/*
-    ) {
+    } else if (session && !inTabsGroup) {
+      // Redirect to the tabs if authenticated
       router.replace('/(tabs)');
     }
   }, [session, loading, segments]);
@@ -73,7 +70,6 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="plants/[id]" options={{ headerShown: false }} />
-
       </Stack>
       <StatusBar style="auto" />
     </NavigationThemeProvider>
@@ -85,20 +81,14 @@ export default Sentry.wrap(function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  const onLayoutRootView = useCallback(async () => {
+  useEffect(() => {
     if (loaded) {
-      try {
-        await SplashScreen.hideAsync();
-      } catch (e) {
-        // Ignore splash screen errors
-      }
+      SplashScreen.hideAsync();
     }
   }, [loaded]);
 
   if (!loaded) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }} />
-    );
+    return null;
   }
 
   return (
