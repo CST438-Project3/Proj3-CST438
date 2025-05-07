@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import Colors from '@/constants/Colors';
+import { supabase } from './supabase';
 
 export type Theme = 'light' | 'dark' | 'spring' | 'summer' | 'autumn' | 'winter';
 
@@ -17,6 +19,7 @@ interface ThemeContextType {
     card: string;
     border: string;
   };
+  isLoading: boolean;
 }
 
 const themeColors = {
@@ -92,6 +95,68 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useColorScheme() || 'light';
   const [theme, setTheme] = useState<Theme>(systemColorScheme as Theme);
   const [isSeasonalThemeEnabled, setIsSeasonalThemeEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load theme preferences from database
+  const loadThemePreferences = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('user')
+          .select('theme_preference, is_seasonal_theme_enabled')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setTheme(data.theme_preference as Theme);
+          setIsSeasonalThemeEnabled(data.is_seasonal_theme_enabled);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading theme preferences:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load preferences on mount and when auth state changes
+  useEffect(() => {
+    loadThemePreferences();
+
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        loadThemePreferences();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Save theme preferences to database
+  const saveThemePreferences = async (newTheme: Theme, newIsSeasonalEnabled: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('user')
+          .update({
+            theme_preference: newTheme,
+            is_seasonal_theme_enabled: newIsSeasonalEnabled
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('Error saving theme preferences:', error);
+    }
+  };
 
   // Effect to handle seasonal theme changes
   useEffect(() => {
@@ -109,13 +174,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [systemColorScheme, isSeasonalThemeEnabled]);
 
   const toggleSeasonalTheme = () => {
-    setIsSeasonalThemeEnabled(!isSeasonalThemeEnabled);
+    const newIsSeasonalEnabled = !isSeasonalThemeEnabled;
+    setIsSeasonalThemeEnabled(newIsSeasonalEnabled);
+    saveThemePreferences(theme, newIsSeasonalEnabled);
+  };
+
+  const handleSetTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+    saveThemePreferences(newTheme, isSeasonalThemeEnabled);
   };
 
   const colors = themeColors[theme];
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, isSeasonalThemeEnabled, toggleSeasonalTheme, colors }}>
+    <ThemeContext.Provider value={{ 
+      theme, 
+      setTheme: handleSetTheme, 
+      isSeasonalThemeEnabled, 
+      toggleSeasonalTheme, 
+      colors,
+      isLoading
+    }}>
       {children}
     </ThemeContext.Provider>
   );
