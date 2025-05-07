@@ -3,7 +3,8 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback } from 'react';
+import { View } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -11,6 +12,7 @@ import * as Sentry from '@sentry/react-native';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 
+// Initialize Sentry
 Sentry.init({
   dsn: 'https://e41dd0c787af3b672353a2fa05b9c564@o4509117947510784.ingest.us.sentry.io/4509117952688128',
   replaysSessionSampleRate: 0.1,
@@ -22,8 +24,6 @@ Sentry.init({
       maskAllVectors: true,
     }),
   ],
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   spotlight: __DEV__,
 });
 
@@ -80,14 +80,20 @@ export default Sentry.wrap(function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  useEffect(() => {
+  const onLayoutRootView = useCallback(async () => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      try {
+        await SplashScreen.hideAsync();
+      } catch (e) {
+        // Ignore splash screen errors
+      }
     }
   }, [loaded]);
 
   if (!loaded) {
-    return null;
+    return (
+      <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }} />
+    );
   }
 
   return (
