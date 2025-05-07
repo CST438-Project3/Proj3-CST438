@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { View, StyleSheet, Pressable, Image } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { Ionicons } from '@expo/vector-icons';
