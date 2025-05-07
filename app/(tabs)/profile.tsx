@@ -24,15 +24,17 @@ type Profile = {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  username: string | null;
 };
 
 export default function ProfileScreen() {
-  const { colors } = useTheme();
+  const { colors, theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [localImagePath, setLocalImagePath] = useState<string | null>(null);
+  const [showThemes, setShowThemes] = useState(false);
 
   useEffect(() => {
     getProfile();
@@ -46,15 +48,45 @@ export default function ProfileScreen() {
       if (!user) throw new Error('No user found');
 
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // User exists in auth but not in database, create a new profile
+          const { error: insertError } = await supabase
+            .from('user')
+            .insert([
+              {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || null,
+                avatar_url: null,
+              }
+            ]);
+
+          if (insertError) throw insertError;
+
+          // Fetch the newly created profile
+          const { data: newData, error: fetchError } = await supabase
+            .from('user')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (fetchError) throw fetchError;
+          setProfile(newData);
+        } else {
+          throw error;
+        }
+      } else {
+        setProfile(data);
+      }
 
       // If there's an avatar URL, download and cache it locally
-      if (data.avatar_url) {
+      if (data?.avatar_url) {
         const fileName = `${user.id}.jpg`;
         const localPath = `${FileSystem.cacheDirectory}${fileName}`;
         
@@ -71,16 +103,17 @@ export default function ProfileScreen() {
           } else {
             setLocalImagePath(localPath);
           }
-        } catch (error) {
-          console.error('Error caching avatar:', error);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('Error caching avatar:', errorMessage);
           // If caching fails, just use the remote URL
           setLocalImagePath(null);
         }
       }
-
-      setProfile(data);
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching profile:', errorMessage);
+      Alert.alert('Error', 'Failed to load profile. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -161,15 +194,13 @@ export default function ProfileScreen() {
   const processAndUploadImage = async (uri: string) => {
     try {
       setUploading(true);
-      console.log('Starting image upload process...');
+      console.log('Starting image upload process');
 
       // Get the user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
-      console.log('User found:', user.id);
 
       // First convert to JPEG if needed and resize to a smaller size
-      console.log('Converting and resizing image...');
       const processedImage = await ImageManipulator.manipulateAsync(
         uri,
         [
@@ -180,36 +211,28 @@ export default function ProfileScreen() {
           format: ImageManipulator.SaveFormat.JPEG
         }
       );
-      console.log('Image processed:', processedImage.uri);
 
       // Convert image to blob
-      console.log('Converting image to blob...');
       const response = await fetch(processedImage.uri);
       if (!response.ok) {
-        console.error('Fetch response not ok:', response.status, response.statusText);
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
       }
       const blob = await response.blob();
-      console.log('Blob created, size:', blob.size);
 
       // Upload to Supabase Storage
       const fileExt = 'jpg';
       const fileName = `${user.id}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
-      console.log('Preparing to upload to:', filePath);
 
       // First, try to delete any existing avatar
       try {
-        console.log('Attempting to delete existing avatar...');
         await supabase.storage
           .from('avatars')
           .remove([filePath]);
-        console.log('Existing avatar deleted');
       } catch (error) {
-        console.log('No existing avatar to delete');
+        // Ignore error if no existing avatar
       }
 
-      console.log('Uploading new avatar...');
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, blob, {
@@ -217,30 +240,20 @@ export default function ProfileScreen() {
           upsert: true
         });
 
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-      console.log('Avatar uploaded successfully');
+      if (uploadError) throw uploadError;
 
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
-      console.log('Public URL generated:', publicUrl);
 
       // Update the profile
-      console.log('Updating user profile...');
       const { error: updateError } = await supabase
-        .from('users')
+        .from('user')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) {
-        console.error('Profile update error:', updateError);
-        throw updateError;
-      }
-      console.log('Profile updated successfully');
+      if (updateError) throw updateError;
 
       // Update local state with the new avatar URL
       setProfile(prev => {
@@ -261,8 +274,8 @@ export default function ProfileScreen() {
       
       Alert.alert('Success', 'Profile picture updated!');
     } catch (error) {
-      console.error('Upload error details:', error);
-      Alert.alert('Error', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setUploading(false);
       setShowOptions(false);
@@ -284,13 +297,13 @@ export default function ProfileScreen() {
         await supabase.storage
           .from('avatars')
           .remove([filePath]);
-      } catch (error) {
+      } catch (error: unknown) {
         console.log('No avatar to delete from storage');
       }
 
       // Update the profile to remove avatar
       const { error: updateError } = await supabase
-        .from('users')
+        .from('user')
         .update({ avatar_url: null })
         .eq('id', user.id);
 
@@ -301,8 +314,9 @@ export default function ProfileScreen() {
       setLocalImagePath(null);
       
       Alert.alert('Success', 'Profile picture removed!');
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setUploading(false);
     }
@@ -319,8 +333,9 @@ export default function ProfileScreen() {
       
       // Navigate to login screen
       router.replace('/login');
-    } catch (error) {
-      Alert.alert('Error', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -335,7 +350,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView style={[styles.scrollContainer, { backgroundColor: colors.background }]} contentContainerStyle={styles.scrollContent}>
+    <ScrollView 
+      style={[styles.scrollContainer, { backgroundColor: colors.background }]} 
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity 
@@ -393,28 +412,178 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
           <Text style={[styles.name, { color: colors.text }]}>{profile?.full_name || 'No name set'}</Text>
-          <Text style={[styles.email, { color: colors.text + '80' }]}>{profile?.email}</Text>
+          <View style={styles.infoContainer}>
+            <Ionicons name="mail-outline" size={18} color={colors.text + '80'} style={styles.infoIcon} />
+            <Text style={[styles.email, { color: colors.text + '80' }]}>{profile?.email}</Text>
+          </View>
+          {profile?.username && (
+            <View style={styles.infoContainer}>
+              <Ionicons name="person-outline" size={18} color={colors.text + '80'} style={styles.infoIcon} />
+              <Text style={[styles.username, { color: colors.text + '80' }]}>{profile.username}</Text>
+            </View>
+          )}
           {profile?.avatar_url && (
             <TouchableOpacity 
               style={styles.removeAvatarButton}
               onPress={removeAvatar}
               disabled={uploading}
             >
-              <Text style={[styles.removeAvatarText, { color: colors.accent }]}>Remove Photo</Text>
+              <Text style={[styles.removeAvatarText, { color: colors.primary }]}>Remove Photo</Text>
             </TouchableOpacity>
           )}
         </View>
 
         <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <TouchableOpacity style={[styles.button, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity 
+            style={[styles.button, { borderBottomColor: colors.border }]}
+            onPress={() => router.push('/settings')}
+          >
             <Ionicons name="settings-outline" size={24} color={colors.primary} />
             <Text style={[styles.buttonText, { color: colors.text }]}>Settings</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity 
+            style={[styles.button, { borderBottomColor: colors.border }]}
+            onPress={() => router.push('/help')}
+          >
             <Ionicons name="help-circle-outline" size={24} color={colors.primary} />
             <Text style={[styles.buttonText, { color: colors.text }]}>Help & Support</Text>
           </TouchableOpacity>
+
+          <View>
+            <TouchableOpacity 
+              style={[styles.button, { borderBottomColor: colors.border }]}
+              onPress={() => setShowThemes(!showThemes)}
+            >
+              <Ionicons name="color-palette-outline" size={24} color={colors.primary} />
+              <Text style={[styles.buttonText, { color: colors.text }]}>Theme</Text>
+              <View style={styles.expandIconContainer}>
+                <Ionicons 
+                  name={showThemes ? "chevron-up" : "chevron-down"} 
+                  size={20} 
+                  color={colors.text + '80'} 
+                />
+              </View>
+            </TouchableOpacity>
+
+            {showThemes && (
+              <View style={styles.themeList}>
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'light' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('light')}
+                >
+                  <Ionicons 
+                    name="sunny-outline" 
+                    size={24} 
+                    color={theme === 'light' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'light' ? colors.primary : colors.text }
+                  ]}>Light</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'dark' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('dark')}
+                >
+                  <Ionicons 
+                    name="moon-outline" 
+                    size={24} 
+                    color={theme === 'dark' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'dark' ? colors.primary : colors.text }
+                  ]}>Dark</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'spring' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('spring')}
+                >
+                  <Ionicons 
+                    name="flower-outline" 
+                    size={24} 
+                    color={theme === 'spring' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'spring' ? colors.primary : colors.text }
+                  ]}>Spring</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'summer' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('summer')}
+                >
+                  <Ionicons 
+                    name="sunny" 
+                    size={24} 
+                    color={theme === 'summer' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'summer' ? colors.primary : colors.text }
+                  ]}>Summer</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'autumn' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('autumn')}
+                >
+                  <Ionicons 
+                    name="leaf-outline" 
+                    size={24} 
+                    color={theme === 'autumn' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'autumn' ? colors.primary : colors.text }
+                  ]}>Autumn</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeButton,
+                    { borderBottomColor: colors.border },
+                    theme === 'winter' && styles.selectedTheme
+                  ]}
+                  onPress={() => setTheme('winter')}
+                >
+                  <Ionicons 
+                    name="snow-outline" 
+                    size={24} 
+                    color={theme === 'winter' ? colors.primary : colors.text} 
+                  />
+                  <Text style={[
+                    styles.themeButtonText,
+                    { color: theme === 'winter' ? colors.primary : colors.text }
+                  ]}>Winter</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
 
           <TouchableOpacity style={[styles.button, styles.lastButton]} onPress={signOut}>
             <Ionicons name="log-out-outline" size={24} color="#DB4437" />
@@ -475,7 +644,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  infoIcon: {
+    marginRight: 8,
+  },
   email: {
+    fontSize: 16,
+  },
+  username: {
     fontSize: 16,
   },
   section: {
@@ -522,5 +702,31 @@ const styles = StyleSheet.create({
   removeAvatarText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: colors => colors.text,
+  },
+  expandIconContainer: {
+    marginLeft: 'auto',
+    paddingRight: 8,
+  },
+  themeList: {
+    paddingLeft: 48, // Aligns with other menu items text
+  },
+  themeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    gap: 12,
+  },
+  themeButtonText: {
+    fontSize: 16,
+  },
+  selectedTheme: {
+    backgroundColor: colors => colors.accent + '10',
   },
 }); 

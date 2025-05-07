@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity, Animated } from 'react-native';
+import { ScrollView, StyleSheet, View, ImageBackground, Pressable, Image, Alert, TouchableOpacity, Animated, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -19,26 +19,26 @@ export default function HomeScreen() {
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>('Indoor');
   const [userName, setUserName] = useState<string>('');
   const [showMenu, setShowMenu] = useState(false);
-  const [showThemesMenu, setShowThemesMenu] = useState(false);
   const [toggleAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Get the user's information from the users table
+        // Get the user's information from the user table
         const { data, error } = await supabase
-          .from('users')
+          .from('user')
           .select('full_name')
           .eq('id', user.id)
           .single();
         
         if (error) {
-          console.error('Error fetching user:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('Error fetching user:', errorMessage);
           return;
         }
 
-        if (data && data.full_name) {
+        if (data?.full_name) {
           setUserName(data.full_name);
         } else {
           // If no full_name exists, use email as fallback
@@ -120,12 +120,7 @@ export default function HomeScreen() {
             name={userName}
             greeting={getGreeting()}
             onMenuPress={() => {
-              if (showMenu || showThemesMenu) {
-                setShowMenu(false);
-                setShowThemesMenu(false);
-              } else {
-                setShowMenu(true);
-              }
+              setShowMenu(!showMenu);
             }}
             onSharePress={() => {
               Alert.alert('Share', 'Share this app with your friends!');
@@ -133,7 +128,7 @@ export default function HomeScreen() {
           />
           
           {showMenu && (
-            <View style={[styles.themeDropdown, { 
+            <View style={[styles.menuDropdown, { 
               backgroundColor: colors.card,
               borderColor: colors.border 
             }]}>
@@ -158,14 +153,13 @@ export default function HomeScreen() {
                         : theme === 'dark' 
                           ? 'rgba(255, 255, 255, 0.2)' 
                           : 'rgba(0, 0, 0, 0.1)',
-                      outlineWidth: 1,
-                      outlineStyle: 'solid',
-                      outlineColor: isSeasonalThemeEnabled 
+                      borderWidth: 1,
+                      borderStyle: 'solid',
+                      borderColor: isSeasonalThemeEnabled 
                         ? colors.primary 
                         : theme === 'dark'
                           ? 'rgba(255, 255, 255, 0.3)'
-                          : 'rgba(0, 0, 0, 0.2)',
-                      outlineOffset: 0
+                          : 'rgba(0, 0, 0, 0.2)'
                     }
                   ]}
                 >
@@ -191,90 +185,23 @@ export default function HomeScreen() {
                   </Animated.View>
                 </TouchableOpacity>
               </View>
-              <View style={[styles.divider, { backgroundColor: colors.border }]} />
-              <TouchableOpacity
-                style={[styles.themeOption]}
+
+              <TouchableOpacity 
+                style={[styles.menuItem, { 
+                  borderTopColor: colors.border,
+                  borderTopWidth: 1,
+                  padding: 10,
+                }]}
                 onPress={() => {
                   setShowMenu(false);
-                  setShowThemesMenu(true);
+                  router.push('/add-plant');
                 }}
               >
-                <Ionicons name="color-palette" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[styles.themeOptionText, { color: colors.text }]}>Themes</ThemedText>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {showThemesMenu && (
-            <View style={[styles.themeDropdown, { 
-              backgroundColor: colors.card,
-              borderColor: colors.border 
-            }]}>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'light' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('light'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="sunny-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'light' && { color: colors.primary }
-                ]}>Light</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'dark' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('dark'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="moon-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'dark' && { color: colors.primary }
-                ]}>Dark</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'spring' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('spring'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="flower-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'spring' && { color: colors.primary }
-                ]}>Spring</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'summer' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('summer'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="sunny" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'summer' && { color: colors.primary }
-                ]}>Summer</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'autumn' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('autumn'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="leaf-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'autumn' && { color: colors.primary }
-                ]}>Autumn</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.themeOption, theme === 'winter' && { backgroundColor: colors.accent + '20' }]}
-                onPress={() => { setTheme('winter'); setShowThemesMenu(false); }}
-              >
-                <Ionicons name="snow-outline" size={20} color={colors.text} style={styles.themeIcon} />
-                <ThemedText style={[
-                  styles.themeOptionText,
-                  { color: colors.text },
-                  theme === 'winter' && { color: colors.primary }
-                ]}>Winter</ThemedText>
+                <View style={styles.buttonContent}>
+                  <Ionicons name="add-circle-outline" size={14} color={colors.primary} style={styles.buttonIcon} />
+                  <Ionicons name="flower-outline" size={14} color={colors.primary} style={styles.buttonIcon} />
+                  <Text style={[styles.menuItemText, { color: colors.text, fontSize: 14 }]}>Add Plants</Text>
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -381,7 +308,7 @@ const styles = StyleSheet.create({
     height: 80,
     marginBottom: 8,
   },
-  themeDropdown: {
+  menuDropdown: {
     position: 'absolute',
     top: 120,
     right: 20,
@@ -396,23 +323,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     zIndex: 1000,
-  },
-  themeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
-  },
-  themeIcon: {
-    marginRight: 10,
-  },
-  themeOptionText: {
-    fontSize: 16,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 8,
-    width: '100%',
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -441,7 +351,22 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuItemText: {
+    fontWeight: '600',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
 });
