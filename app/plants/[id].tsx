@@ -66,7 +66,7 @@ export default function PlantDetailsScreen() {
       return;
     }
 
-    router.replace('/plants'); // redirect back to My Plants tab
+    router.replace('/plants');
   };
 
   const handleWaterNow = async () => {
@@ -88,6 +88,51 @@ export default function PlantDetailsScreen() {
       fetchLastWatered();
     }
   }, [id]);
+
+  const getWateringRange = () => {
+    const min = plant?.minPrecip;
+    const max = plant?.maxPrecip;
+    if (!min || !max) return null;
+
+    const mmToLiters = (mm: number) => Math.round(mm * 0.05 * 100) / 100;
+    const minL = mmToLiters(Math.round(min / 52));
+    const maxL = mmToLiters(Math.round(max / 52));
+
+    return `${minL}–${maxL} L per week`;
+  };
+
+  const getNextWaterDate = () => {
+    if (!lastWatered) return null;
+    const last = new Date(lastWatered);
+    last.setDate(last.getDate() + 7); // always 1 week later
+    return last.toLocaleDateString(undefined, { dateStyle: 'medium' });
+  };
+
+  const getReadableLight = (value: number) => {
+    if (value <= 3) return "Low light (2–4 hours/day)";
+    if (value <= 6) return "Medium light (4–6 hours/day)";
+    return "High light (6–12 hours/day)";
+  };
+  
+  const getWindowPlacement = (value: number) => {
+    if (value <= 3) return "🌑 Place near a north-facing window or shaded area.";
+    if (value <= 6) return "🌥 Bright, indirect light—east or west window is ideal.";
+    return "☀️ Needs strong sun—south-facing window or outdoor spot.";
+  };
+
+  const getTempTip = (min: number, max: number) => {
+    if (min < 10) return "🧊 This plant may need extra warmth indoors.";
+    if (max > 35) return "🔥 Keep away from extreme heat or direct sunlight.";
+    return "🌡️ This plant thrives in average indoor conditions.";
+  };
+
+  const formatLastWatered = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  };
 
   if (loading) {
     return (
@@ -144,43 +189,31 @@ export default function PlantDetailsScreen() {
                 </Text>
               )}
 
-              <View style={styles.iconRow}>
-                <Ionicons name="sunny-outline" size={18} color={colors.text} />
-                <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
-                  Light: {plant.light}
-                </Text>
-              </View>
-
-              <View style={styles.iconRow}>
-                <Ionicons name="thermometer-outline" size={18} color={colors.text} />
-                <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
-                  Temp: {plant.minTemp}°F – {plant.maxTemp}°F
-                </Text>
-              </View>
-
-              {(plant.minPrecip || plant.maxPrecip) && (
+              {plant.duration && (
+                <View style={styles.iconRow}>
+                    <Ionicons name="hourglass-outline" size={18} color={colors.text} />
+                    <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
+                    Duration: {plant.duration.charAt(0).toUpperCase() + plant.duration.slice(1)}
+                    </Text>
+                </View>
+)}              
+                {plant.growthRate && (
+                <View style={styles.iconRow}>
+                    <Ionicons name="leaf-outline" size={18} color={colors.text} />
+                    <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
+                    Growth Rate: {plant.growthRate.charAt(0).toUpperCase() + plant.growthRate.slice(1)}
+                    </Text>
+                </View>
+                )}
+                <View style={styles.divider} />
+                
+                <Text style={[styles.sectionHeader, { color: colors.text }]}>Watering Tips</Text>
+                            
+              {getWateringRange() && (
                 <View style={styles.iconRow}>
                   <Ionicons name="water-outline" size={18} color={colors.text} />
                   <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
-                    Precipitation: {plant.minPrecip} – {plant.maxPrecip}
-                  </Text>
-                </View>
-              )}
-
-              {plant.duration && (
-                <View style={styles.iconRow}>
-                  <Ionicons name="hourglass-outline" size={18} color={colors.text} />
-                  <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
-                    Duration: {plant.duration.charAt(0).toUpperCase() + plant.duration.slice(1)}
-                  </Text>
-                </View>
-              )}
-
-              {plant.growthRate && (
-                <View style={styles.iconRow}>
-                  <Ionicons name="leaf-outline" size={18} color={colors.text} />
-                  <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
-                    Growth Rate: {plant.growthRate.charAt(0).toUpperCase() + plant.growthRate.slice(1)}
+                     {getWateringRange()} per square meter of soil
                   </Text>
                 </View>
               )}
@@ -194,10 +227,60 @@ export default function PlantDetailsScreen() {
                 </View>
               )}
 
-              <TouchableOpacity onPress={handleWaterNow} style={styles.waterButton}>
-                <Text style={styles.waterButtonText}>💧 Water Now</Text>
-              </TouchableOpacity>
+                {getNextWaterDate() && (
+                <View style={styles.iconRow}>
+                    <Ionicons name="calendar-outline" size={18} color={colors.text} />
+                    <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
+                    Water Next: {getNextWaterDate()}
+                    </Text>
+                </View>
+                )}
 
+            <TouchableOpacity onPress={handleWaterNow} style={styles.waterButton}>
+                <Text style={styles.waterButtonText}>💧 Water Now</Text>
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+                
+            <Text style={[styles.sectionHeader, { color: colors.text }]}>Lighting Tips</Text>
+            <View style={styles.iconRow}>
+                <Ionicons name="sunny-outline" size={18} color={colors.text} />
+                <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
+                  Light: {plant.light}/10
+                </Text>
+              </View>
+            {plant.light && (
+            <>
+                <View style={styles.iconRow}>
+                <Ionicons name="sunny-outline" size={18} color={colors.text} />
+                <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
+                    {getReadableLight(plant.light)}
+                </Text>
+                </View>
+                <Text style={[styles.tipText, { color: colors.text + 'CC' }]}>
+                {getWindowPlacement(plant.light)}
+                </Text>
+            </>
+            )}
+            <View style={styles.divider} />
+                
+            <Text style={[styles.sectionHeader, { color: colors.text }]}>Temperature Tips</Text>
+            <View style={styles.iconRow}>
+            <Ionicons name="thermometer-outline" size={18} color={colors.text} />
+            <Text style={[styles.detailText, { color: colors.text + 'CC' }]}>
+                Temp: {plant.minTemp}–{plant.maxTemp}°C
+            </Text>
+            </View>
+
+            <Text style={[styles.tipText, { color: colors.text + 'CC' }]}>
+                {getTempTip(plant.minTemp, plant.maxTemp)}
+            </Text>
+
+            <Text style={[styles.tipText, { color: colors.text + 'CC' }]}>
+                Want to check suitability? Add your room temperature in Settings.
+            </Text>
+            
+            <View style={styles.divider} />
               <TouchableOpacity onPress={handleRemovePlant} style={styles.removeButton}>
                 <Text style={styles.removeButtonText}>Remove from My Plants</Text>
               </TouchableOpacity>
@@ -208,18 +291,6 @@ export default function PlantDetailsScreen() {
     </View>
   );
 }
-
-export const screenOptions = {
-  headerShown: false,
-};
-
-const formatLastWatered = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleString(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
-};
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
@@ -248,6 +319,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  divider: {
+    height: 1,
+    backgroundColor: '#ccc',
+    width: '100%',
+    marginVertical: 8,
+    opacity: 0.6,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+    alignSelf: 'center',
+  },
   image: {
     width: '100%',
     height: 200,
@@ -259,6 +345,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
     alignSelf: 'center',
+  },
+  tipText: {
+    fontSize: 14,
+    marginBottom: 6,
+    marginLeft: 26,
   },
   italicText: {
     fontSize: 16,
