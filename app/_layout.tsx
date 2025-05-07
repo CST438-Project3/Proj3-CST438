@@ -1,6 +1,6 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback } from 'react';
@@ -9,6 +9,8 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import * as Sentry from '@sentry/react-native';
+import { ThemeProvider } from '@/lib/ThemeContext';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
 
 // Initialize Sentry
 Sentry.init({
@@ -25,8 +27,55 @@ Sentry.init({
   spotlight: __DEV__,
 });
 
-export default Sentry.wrap(function RootLayout() {
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
+
+function useProtectedRoute() {
+  const { session, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
+    const isSignupPage = segments[0] === 'signup';
+    const isResetPasswordPage = segments[0] === 'reset-password';
+    const isUpdatePasswordPage = segments[0] === 'update-password';
+
+    if (!session && !inAuthGroup && !isSignupPage && !isResetPasswordPage && !isUpdatePasswordPage) {
+      // Redirect to the login page if not authenticated and not on signup, reset password, or update password page
+      router.replace('/login');
+    } else if (session && !inTabsGroup) {
+      // Redirect to the tabs if authenticated
+      router.replace('/(tabs)');
+    }
+  }, [session, loading, segments]);
+}
+
+function RootLayoutNav() {
+  useProtectedRoute();
   const colorScheme = useColorScheme();
+
+  return (
+    <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password-callback" options={{ headerShown: false }} />
+        <Stack.Screen name="update-password" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </NavigationThemeProvider>
+  );
+}
+
+export default Sentry.wrap(function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -48,15 +97,10 @@ export default Sentry.wrap(function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack onLayout={onLayoutRootView}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+    <ThemeProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
     </ThemeProvider>
   );
 });

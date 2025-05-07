@@ -5,11 +5,18 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "plantgainz",
+    "scheme": ["plantgainz"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "developmentClient": {
+      "silentLaunch": true
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cst438.plantgainz"
     },
     "android": {
       "adaptiveIcon": {
@@ -58,3 +65,4 @@
     "owner": "jameslindfors-csumb"
   }
 }
+

@@ -1,9 +1,11 @@
 import React from 'react';
-import { Image, StyleSheet, View, ViewStyle } from 'react-native';
+import { View, StyleSheet, Image, ViewStyle } from 'react-native';
 import { ThemedText } from './ThemedText';
-import { IconSymbol } from './ui/IconSymbol';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/lib/ThemeContext';
 
 interface PlantCardProps {
+  id: number;
   image: any;
   waterLevel: number;
   sunType: string;
@@ -12,23 +14,23 @@ interface PlantCardProps {
 }
 
 export function PlantCard({ image, waterLevel, sunType, temperature, style }: PlantCardProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={[styles.container, style]}>
-      <View style={styles.imageContainer}>
-        <Image source={image} style={styles.image} resizeMode="cover" />
-      </View>
-      <View style={styles.metrics}>
-        <View style={styles.metricItem}>
-          <IconSymbol name="drop.fill" size={16} color="#4A90E2" />
-          <ThemedText style={styles.metricText}>{waterLevel}%</ThemedText>
+    <View style={[styles.container, { backgroundColor: colors.card }, style]}>
+      <Image source={image} style={styles.image} />
+      <View style={styles.infoContainer}>
+        <View style={styles.infoRow}>
+          <Ionicons name="water-outline" size={16} color={colors.primary} />
+          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{waterLevel}ml</ThemedText>
         </View>
-        <View style={styles.metricItem}>
-          <IconSymbol name="sun.max.fill" size={16} color="#FFB800" />
-          <ThemedText style={styles.metricText}>{sunType}</ThemedText>
+        <View style={styles.infoRow}>
+          <Ionicons name="sunny-outline" size={16} color={colors.primary} />
+          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{sunType}</ThemedText>
         </View>
-        <View style={styles.metricItem}>
-          <IconSymbol name="thermometer" size={16} color="#FF4B4B" />
-          <ThemedText style={styles.metricText}>{temperature}</ThemedText>
+        <View style={styles.infoRow}>
+          <Ionicons name="thermometer-outline" size={16} color={colors.primary} />
+          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{temperature}°F</ThemedText>
         </View>
       </View>
     </View>
@@ -37,38 +39,29 @@ export function PlantCard({ image, waterLevel, sunType, temperature, style }: Pl
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  imageContainer: {
-    backgroundColor: '#F5F5F5',
-    aspectRatio: 1,
-    width: '100%',
+    shadowRadius: 4,
   },
   image: {
     width: '100%',
-    height: '100%',
+    height: 120,
+    resizeMode: 'cover',
   },
-  metrics: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+  infoContainer: {
+    padding: 12,
+    gap: 8,
   },
-  metricItem: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
-  metricText: {
+  infoText: {
     fontSize: 12,
-    color: '#666666',
   },
 }); 

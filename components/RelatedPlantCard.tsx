@@ -1,9 +1,11 @@
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { ThemedText } from './ThemedText';
-import { IconSymbol } from './ui/IconSymbol';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/lib/ThemeContext';
 
 interface RelatedPlantCardProps {
+  id: number;
   image: any;
   title: string;
   description: string;
@@ -11,7 +13,6 @@ interface RelatedPlantCardProps {
   waterLevel: number;
   sunType: string;
   temperature: number;
-  onPress?: () => void;
 }
 
 export function RelatedPlantCard({
@@ -22,116 +23,87 @@ export function RelatedPlantCard({
   waterLevel,
   sunType,
   temperature,
-  onPress,
 }: RelatedPlantCardProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <Pressable style={[styles.container, { backgroundColor: colors.card }]}>
+      <Image source={image} style={styles.image} />
       <View style={styles.content}>
-        <View style={styles.info}>
-          <ThemedText style={styles.title}>{title}</ThemedText>
-          <ThemedText style={styles.description} numberOfLines={1}>
-            {description}
-          </ThemedText>
-          <View style={styles.metrics}>
-            <View style={styles.metricItem}>
-              <IconSymbol name="drop.fill" size={16} color="#4A90E2" />
-              <ThemedText style={styles.metricText}>{waterLevel}%</ThemedText>
-            </View>
-            <View style={styles.metricItem}>
-              <IconSymbol name="sun.max.fill" size={16} color="#FFB800" />
-              <ThemedText style={styles.metricText}>{sunType}</ThemedText>
-            </View>
-            <View style={styles.metricItem}>
-              <IconSymbol name="thermometer" size={16} color="#FF4B4B" />
-              <ThemedText style={styles.metricText}>{temperature}</ThemedText>
-            </View>
-          </View>
-          <View style={styles.priceContainer}>
-            <ThemedText style={styles.price}>£{price.toFixed(2)}</ThemedText>
-          </View>
+        <View style={styles.header}>
+          <ThemedText style={[styles.title, { color: colors.text }]}>{title}</ThemedText>
+          <ThemedText style={[styles.price, { color: colors.primary }]}>${price.toFixed(2)}</ThemedText>
         </View>
-        <View style={styles.imageWrapper}>
-          <Image source={image} style={styles.image} resizeMode="cover" />
+        <ThemedText style={[styles.description, { color: colors.text + '80' }]} numberOfLines={2}>
+          {description}
+        </ThemedText>
+        <View style={styles.infoContainer}>
+          <View style={styles.infoRow}>
+            <Ionicons name="water-outline" size={16} color={colors.primary} />
+            <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{waterLevel}ml</ThemedText>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="sunny-outline" size={16} color={colors.primary} />
+            <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{sunType}</ThemedText>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="thermometer-outline" size={16} color={colors.primary} />
+            <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{temperature}°F</ThemedText>
+          </View>
         </View>
       </View>
-      <TouchableOpacity style={styles.favoriteButton}>
-        <IconSymbol name="heart" size={24} color="#999999" />
-      </TouchableOpacity>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
+    flexDirection: 'row',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 4,
+  },
+  image: {
+    width: 100,
+    height: 100,
+    resizeMode: 'cover',
   },
   content: {
+    flex: 1,
+    padding: 12,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  info: {
-    flex: 1,
-    marginRight: 12,
+    alignItems: 'center',
+    marginBottom: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 12,
-  },
-  metrics: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  metricItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metricText: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  priceContainer: {
-    backgroundColor: '#F5F5F5',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
   },
   price: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#7C9A72',
   },
-  imageWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
+  description: {
+    fontSize: 12,
+    marginBottom: 12,
   },
-  image: {
-    width: '100%',
-    height: '100%',
+  infoContainer: {
+    gap: 8,
   },
-  favoriteButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoText: {
+    fontSize: 12,
   },
 }); 
