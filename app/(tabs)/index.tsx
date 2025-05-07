@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 
 import { ThemedText } from '@/components/ThemedText';
+
 import { PlantCard } from '@/components/PlantCard';
 import { RelatedPlantCard } from '@/components/RelatedPlantCard';
 import { FilterTabs } from '@/components/FilterTabs';
