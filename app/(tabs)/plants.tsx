@@ -1,45 +1,38 @@
-import React from 'react';
-
-import { ScrollView, StyleSheet, View, ImageBackground, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, View, ImageBackground, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
 import { useTheme } from '@/lib/ThemeContext';
+import { supabase } from '@/lib/supabase';
+import { useIsFocused} from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 export default function PlantsScreen() {
   const { colors } = useTheme();
+  const [myPlants, setMyPlants] = useState<any[]>([]);
+  const isFocused = useIsFocused();
+  const router = useRouter();
 
-  // Example data - replace with your database data
-  const allPlants = [
-    {
-      id: 1,
-      image: require('../../assets/images/plant1.png'),
-      waterLevel: 125,
-      sunType: 'Sunny',
-      temperature: 90,
-    },
-    {
-      id: 2,
-      image: require('../../assets/images/plant2.png'),
-      waterLevel: 125,
-      sunType: 'Sunny',
-      temperature: 90,
-    },
-    {
-      id: 3,
-      image: require('../../assets/images/plant3.png'),
-      waterLevel: 125,
-      sunType: 'Sunny',
-      temperature: 90,
-    },
-    {
-      id: 4,
-      image: require('../../assets/images/plant4.png'),
-      waterLevel: 125,
-      sunType: 'Sunny',
-      temperature: 90,
-    },
-  ];
+  const fetchMyPlants = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('collection')
+      .select('id, plantId, plant:plantId (imageUrl, plantName, minTemp, maxTemp, light)')
+      .eq('userId', user.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) setMyPlants(data);
+    else console.error('Failed to load user plants', error);
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchMyPlants();
+    }
+  }, [isFocused]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -68,12 +61,21 @@ export default function PlantsScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.plantsGrid}>
-              {allPlants.map((plant) => (
-                <PlantCard
-                  key={plant.id}
+              {myPlants.map((entry) => (
+                <TouchableOpacity
+                  key={entry.id}
                   style={styles.plantCard}
-                  {...plant}
-                />
+                  onPress={() => router.push(`/plants/${entry.plantId}`)}
+                >
+                  <PlantCard
+                    id={entry.id}
+                    image={{ uri: entry.plant?.imageUrl }}
+                    waterLevel={500} // placeholder for now
+                    sunType={entry.plant?.light?.toString() || 'medium'}
+                    temperature={parseInt(entry.plant?.maxTemp) || 25}
+                    plantName={entry.plant?.plantName}
+                  />
+                </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
@@ -84,58 +86,19 @@ export default function PlantsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  container: {
-    flex: 1,
-  },
-  header: {
-    padding: 16,
-    borderBottomWidth: 1,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
+  root: { flex: 1 },
+  backgroundImage: { flex: 1, width: '100%', height: '100%' },
+  container: { flex: 1 },
+  header: { padding: 16, borderBottomWidth: 1 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2,
   },
-  logo: {
-    width: 36,
-    height: 36,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  plantsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  plantCard: {
-    width: '47%',
-  },
-}); 
+  logo: { width: 36, height: 36 },
+  title: { fontSize: 24, fontWeight: '600' },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 16 },
+  plantsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  plantCard: { width: '47%' },
+});
