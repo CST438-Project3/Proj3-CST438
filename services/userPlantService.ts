@@ -3,9 +3,10 @@ import { supabase } from '@/lib/supabase';
 // Fetch all plants in a user's collection
 export const getUserPlants = async (userId: string) => {
   const { data, error } = await supabase
-    .from('collection')
-    .select('*, plant(*)')
-    .eq('userId', userId);
+  .from('collection')
+  .select('id, lastWatered, plantId, plant:plantId (imageUrl, plantName, minTemp, maxTemp, light)')
+  .eq('userId', userId)
+  .order('created_at', { ascending: false });
 
   if (error) {
     console.error('❌ Error fetching user plants:', error.message);

@@ -47,8 +47,11 @@ function useProtectedRoute() {
     if (!session && !inAuthGroup && !isSignupPage && !isResetPasswordPage && !isUpdatePasswordPage) {
       // Redirect to the login page if not authenticated and not on signup, reset password, or update password page
       router.replace('/login');
-    } else if (session && !inTabsGroup) {
-      // Redirect to the tabs if authenticated
+    } else if (
+      session &&
+      !inTabsGroup &&
+      !segments[0]?.startsWith('plants') // bypass to allow access to /plants/*
+    ) {
       router.replace('/(tabs)');
     }
   }, [session, loading, segments]);
@@ -69,6 +72,8 @@ function RootLayoutNav() {
         <Stack.Screen name="update-password" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
+        <Stack.Screen name="plants/[id]" options={{ headerShown: false }} />
+
       </Stack>
       <StatusBar style="auto" />
     </NavigationThemeProvider>
