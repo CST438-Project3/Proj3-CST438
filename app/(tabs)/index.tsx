@@ -80,7 +80,6 @@ export default function HomeScreen() {
     }).start(() => toggleSeasonalTheme());
   };
 
-  // ✅ Filter based on selected tab using light level
   const filteredPlants = userPlants.filter(({ plant }) => {
     if (selectedFilter === 'Indoor') return plant.light <= 6;
     if (selectedFilter === 'Outdoor') return plant.light > 6;

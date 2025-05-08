@@ -16,9 +16,9 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useRouter } from 'expo-router';
 
 type Plant = {
-id: string;
-plantName: string;
-imageUrl: string | null;
+  id: string;
+  plantName: string;
+  imageUrl: string | null;
 };
 
 const handleAddPlant = async (plant: Plant) => {
