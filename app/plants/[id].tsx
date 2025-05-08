@@ -275,10 +275,6 @@ export default function PlantDetailsScreen() {
             <Text style={[styles.tipText, { color: colors.text + 'CC' }]}>
                 {getTempTip(plant.minTemp, plant.maxTemp)}
             </Text>
-
-            <Text style={[styles.tipText, { color: colors.text + 'CC' }]}>
-                Want to check suitability? Add your room temperature in Settings.
-            </Text>
             
             <View style={styles.divider} />
               <TouchableOpacity onPress={handleRemovePlant} style={styles.removeButton}>

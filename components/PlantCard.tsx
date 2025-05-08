@@ -1,38 +1,53 @@
-import React from 'react';
-
-import { View, StyleSheet, Image, ViewStyle } from 'react-native';
-import { ThemedText } from './ThemedText';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Image, StyleSheet, ImageSourcePropType, ViewStyle } from 'react-native';
+import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/lib/ThemeContext';
 
 interface PlantCardProps {
-  id: number;
-  image: any;
-  waterLevel: number;
-  sunType: string;
-  temperature: number;
+  id: string;
+  plantName: string;
+  image: ImageSourcePropType;
+  waterLevel?: number;
+  sunType?: number;
+  temperature?: number;
+  lastWatered?: string;
   style?: ViewStyle;
 }
 
-export function PlantCard({ image, waterLevel, sunType, temperature, style }: PlantCardProps) {
+export function PlantCard({
+  plantName,
+  image,
+  waterLevel,
+  sunType,
+  temperature,
+  lastWatered,
+  style,
+}: PlantCardProps) {
   const { colors } = useTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card }, style]}>
       <Image source={image} style={styles.image} />
+
+      <ThemedText type="subtitle" style={{ marginTop: 8, marginHorizontal: 12 }}>
+        {plantName}
+      </ThemedText>
+
       <View style={styles.infoContainer}>
-        <View style={styles.infoRow}>
-          <Ionicons name="water-outline" size={16} color={colors.primary} />
-          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{waterLevel}ml</ThemedText>
-        </View>
-        <View style={styles.infoRow}>
-          <Ionicons name="sunny-outline" size={16} color={colors.primary} />
-          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{sunType}</ThemedText>
-        </View>
-        <View style={styles.infoRow}>
-          <Ionicons name="thermometer-outline" size={16} color={colors.primary} />
-          <ThemedText style={[styles.infoText, { color: colors.text + '80' }]}>{temperature}°F</ThemedText>
-        </View>
+        {waterLevel !== undefined && (
+          <View style={styles.statBox}>
+            <Text style={[styles.statText, { color: colors.text + 'CC' }]}>💧 {waterLevel}</Text>
+          </View>
+        )}
+        {sunType !== undefined && (
+          <View style={styles.statBox}>
+            <Text style={[styles.statText, { color: colors.text + 'CC' }]}>☀️ {sunType}</Text>
+          </View>
+        )}
+        {temperature !== undefined && (
+          <View style={styles.statBox}>
+            <Text style={[styles.statText, { color: colors.text + 'CC' }]}>🌡️ {temperature}°</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -40,29 +55,31 @@ export function PlantCard({ image, waterLevel, sunType, temperature, style }: Pl
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 12,
+    width: '100%',
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 12,
   },
   image: {
     width: '100%',
-    height: 120,
+    height: 140,
     resizeMode: 'cover',
   },
   infoContainer: {
-    padding: 12,
-    gap: 8,
-  },
-  infoRow: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+  },
+  statBox: {
     alignItems: 'center',
-    gap: 8,
   },
-  infoText: {
-    fontSize: 12,
+  statText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
-}); 
+});

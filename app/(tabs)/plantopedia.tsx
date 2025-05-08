@@ -20,6 +20,28 @@ type Plant = {
   imageUrl: string | null;
 };
 
+const handleAddPlant = async (plant: Plant) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { error } = await supabase.from('collection').insert({
+      userId: user.id,
+      plantId: plant.id,
+    });
+
+    if (error) {
+      console.error("Failed to add plant:", error);
+      alert("Something went wrong while adding the plant.");
+    } else {
+      alert(`${plant.plantName} added to your collection!`);
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    alert("Something went wrong.");
+  }
+};
+
 const capitalizeWords = (str: string) => {
   return str.split(' ').map(word => 
     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
@@ -53,10 +75,10 @@ export default function PlantopediaScreen() {
     }
   };
 
-  const handleAddPlant = (plant: Plant) => {
-    // TODO: Implement add plant functionality
-    console.log('Adding plant:', plant);
-  };
+  // const handleAddPlant = (plant: Plant) => {
+  //   // TODO: Implement add plant functionality
+  //   console.log('Adding plant:', plant);
+  // };
 
   const renderPlantItem = ({ item }: { item: Plant }) => (
     <TouchableOpacity
