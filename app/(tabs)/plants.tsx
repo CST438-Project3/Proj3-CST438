@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View, ImageBackground, Image, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { PlantCard } from '@/components/PlantCard';
 import { useTheme } from '@/lib/ThemeContext';
 import { supabase } from '@/lib/supabase';
-import { useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 
 export default function PlantsScreen() {
@@ -20,7 +27,22 @@ export default function PlantsScreen() {
 
     const { data, error } = await supabase
       .from('collection')
-      .select('id, plantId, plant:plantId (imageUrl, plantName, minTemp, maxTemp, light)')
+      .select(`
+        id,
+        plantId,
+        plant:plantId (
+          id,
+          plantName,
+          imageUrl,
+          minTemp,
+          maxTemp,
+          light,
+          duration,
+          growthRate,
+          minPrecip,
+          maxPrecip
+        )
+      `)
       .eq('userId', user.id)
       .order('created_at', { ascending: false });
 
@@ -45,8 +67,8 @@ export default function PlantsScreen() {
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <View style={styles.headerContent}>
               <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
-                <Image 
-                  source={require('@/assets/images/iWetMyPlants Logo.png')} 
+                <Image
+                  source={require('@/assets/images/iWetMyPlants Logo.png')}
                   style={styles.logo}
                   resizeMode="contain"
                 />
@@ -54,8 +76,8 @@ export default function PlantsScreen() {
               <ThemedText style={[styles.title, { color: colors.text }]}>My Plants</ThemedText>
             </View>
           </View>
-          
-          <ScrollView 
+
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -68,11 +90,11 @@ export default function PlantsScreen() {
                   onPress={() => router.push(`/plants/${entry.plantId}`)}
                 >
                   <PlantCard
-                    id={entry.id}
+                    id={entry.plant?.id}
                     image={{ uri: entry.plant?.imageUrl }}
-                    waterLevel={500} // placeholder for now
-                    sunType={entry.plant?.light?.toString() || 'medium'}
-                    temperature={parseInt(entry.plant?.maxTemp) || 25}
+                    waterLevel={entry.plant?.minPrecip}
+                    sunType={entry.plant?.light}
+                    temperature={entry.plant?.maxTemp}
                     plantName={entry.plant?.plantName}
                   />
                 </TouchableOpacity>
@@ -92,8 +114,16 @@ const styles = StyleSheet.create({
   header: { padding: 16, borderBottomWidth: 1 },
   headerContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoContainer: {
-    width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   logo: { width: 36, height: 36 },
   title: { fontSize: 24, fontWeight: '600' },
