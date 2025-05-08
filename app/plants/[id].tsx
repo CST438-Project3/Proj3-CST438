@@ -197,6 +197,7 @@ export default function PlantDetailsScreen() {
                     </Text>
                 </View>
               )}              
+
                 {plant.growthRate && (
                 <View style={styles.iconRow}>
                     <Ionicons name="leaf-outline" size={18} color={colors.text} />
