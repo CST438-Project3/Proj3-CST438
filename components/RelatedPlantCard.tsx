@@ -3,36 +3,42 @@ import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/ThemeContext';
+import { useRouter } from 'expo-router';
 
 interface RelatedPlantCardProps {
   id: number;
   image: any;
   title: string;
   description: string;
-  price: number;
+  price?: number; // price is optional
   waterLevel: number;
   sunType: string;
   temperature: number;
 }
 
 export function RelatedPlantCard({
+  id,
   image,
   title,
   description,
-  price,
+  price = 0, // fallback if undefined
   waterLevel,
   sunType,
   temperature,
 }: RelatedPlantCardProps) {
   const { colors } = useTheme();
+  const router = useRouter();
 
   return (
-    <Pressable style={[styles.container, { backgroundColor: colors.card }]}>
+    <Pressable
+      style={[styles.container, { backgroundColor: colors.card }]}
+      onPress={() => router.push(`/plantopedia/${id}`)}
+    >
       <Image source={image} style={styles.image} />
       <View style={styles.content}>
         <View style={styles.header}>
           <ThemedText style={[styles.title, { color: colors.text }]}>{title}</ThemedText>
-          <ThemedText style={[styles.price, { color: colors.primary }]}>${price.toFixed(2)}</ThemedText>
+          {/* <ThemedText style={[styles.price, { color: colors.primary }]}>${price.toFixed(2)}</ThemedText> */}
         </View>
         <ThemedText style={[styles.description, { color: colors.text + '80' }]} numberOfLines={2}>
           {description}
@@ -106,4 +112,4 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 12,
   },
-}); 
+});
