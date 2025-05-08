@@ -50,12 +50,13 @@ function useProtectedRoute() {
     } else if (
       session &&
       !inTabsGroup &&
-      !segments[0]?.startsWith('plants') // ✅ allow access to /plants/*
+      !segments[0]?.startsWith('plants') &&// allow access to /plants/*
+      !segments[0]?.startsWith('plantopedia') 
     ) {
       router.replace('/(tabs)');
     }
-  }, [session, loading, segments]);
-}
+      }, [session, loading, segments]);
+    }
 
 function RootLayoutNav() {
   useProtectedRoute();
@@ -73,6 +74,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="plants/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="plantopedia/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </NavigationThemeProvider>
