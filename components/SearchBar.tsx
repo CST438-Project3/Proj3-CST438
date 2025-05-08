@@ -11,22 +11,27 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/ThemeContext';
 import { ThemedText } from './ThemedText';
-import { usePlants } from '@/hooks/usePlants';
+import { usePlants, Plant } from '@/hooks/usePlants';
 
 interface SearchBarProps {
   onSearch?: (query: string) => void;
   placeholder?: string;
-  onPlantSelect?: (plantId: number) => void;
+  onPlantSelect?: (plantId: string) => void;
 }
 
 export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantSelect }: SearchBarProps) {
-  const [query, setQuery] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const { colors } = useTheme();
   const inputRef = useRef<TextInput>(null);
-  const { plants, loading, searchPlants } = usePlants();
+  const { plants, loading, searchPlants, resetSearch, currentQuery } = usePlants();
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [query, setQuery] = useState(currentQuery);
   const debounceTimeout = useRef<NodeJS.Timeout>();
+
+  // Update query whenever currentQuery changes (e.g., on navigation)
+  useEffect(() => {
+    setQuery(currentQuery);
+  }, [currentQuery]);
 
   const debouncedSearch = useCallback((searchQuery: string) => {
     if (debounceTimeout.current) {
@@ -34,24 +39,22 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
     }
 
     debounceTimeout.current = setTimeout(() => {
-      if (searchQuery.trim()) {
-        searchPlants(searchQuery);
-      } else {
-        searchPlants('');
-      }
+      searchPlants(searchQuery);
       setIsTyping(false);
-    }, 300);
-  }, [searchPlants]);
+      if (onSearch) {
+        onSearch(searchQuery);
+      }
+    }, 200); // Reduced debounce time for more responsive filtering
+  }, [searchPlants, onSearch]);
 
   const handleSearch = (text: string) => {
     setQuery(text);
     setIsTyping(true);
     setShowSuggestions(true);
     debouncedSearch(text);
-    onSearch?.(text);
   };
 
-  const handleSuggestionPress = (plantId: number) => {
+  const handleSuggestionPress = (plantId: string) => {
     setShowSuggestions(false);
     onPlantSelect?.(plantId);
     Keyboard.dismiss();
@@ -60,8 +63,10 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
   const handleClear = () => {
     setQuery('');
     setShowSuggestions(false);
-    searchPlants('');
-    onSearch?.('');
+    resetSearch();
+    if (onSearch) {
+      onSearch('');
+    }
   };
 
   // Cleanup timeout on unmount
@@ -95,7 +100,7 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
         ) : null}
       </View>
       
-      {showSuggestions && (plants.length > 0 || loading || isTyping) && (
+      {showSuggestions && query.length > 0 && (
         <View style={[styles.suggestionsContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {loading || isTyping ? (
             <View style={styles.loadingContainer}>
@@ -114,9 +119,9 @@ export function SearchBar({ onSearch, placeholder = 'Search plants...', onPlantS
                   onPress={() => handleSuggestionPress(item.id)}
                 >
                   <View style={styles.suggestionContent}>
-                    <ThemedText style={styles.plantName}>{item.name}</ThemedText>
+                    <ThemedText style={styles.plantName}>{item.plantName}</ThemedText>
                     <ThemedText style={[styles.scientificName, { color: colors.text + '80' }]}>
-                      {item.scientific_name}
+                      {item.scientificName || ''}
                     </ThemedText>
                   </View>
                 </TouchableOpacity>
@@ -172,6 +177,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     zIndex: 1000,
+    elevation: 5,
   },
   suggestionItem: {
     padding: 15,
