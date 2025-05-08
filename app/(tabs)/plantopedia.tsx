@@ -1,23 +1,46 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
+View,
+Text,
+StyleSheet,
+FlatList,
+Image,
+ActivityIndicator,
+TouchableOpacity,
+ScrollView,
+Platform,
 } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/ThemeContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useRouter } from 'expo-router';
 
 type Plant = {
-  id: string;
-  plantName: string;
-  imageUrl: string | null;
+id: string;
+plantName: string;
+imageUrl: string | null;
+};
+
+const handleAddPlant = async (plant: Plant) => {
+try {
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) throw new Error("User not authenticated");
+
+const { error } = await supabase.from('collection').insert({
+  userId: user.id,
+  plantId: plant.id,
+});
+
+if (error) {
+  console.error("Failed to add plant:", error);
+  alert("Something went wrong while adding the plant.");
+} else {
+  alert(`${plant.plantName} added to your collection!`);
+}
+} catch (err) {
+console.error("Error:", err);
+alert("Something went wrong.");
+}
 };
 
 const handleAddPlant = async (plant: Plant) => {
@@ -43,12 +66,13 @@ const handleAddPlant = async (plant: Plant) => {
 };
 
 const capitalizeWords = (str: string) => {
-  return str.split(' ').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-  ).join(' ');
+return str.split(' ').map(word => 
+word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+).join(' ');
 };
 
 export default function PlantopediaScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,17 +99,10 @@ export default function PlantopediaScreen() {
     }
   };
 
-  // const handleAddPlant = (plant: Plant) => {
-  //   // TODO: Implement add plant functionality
-  //   console.log('Adding plant:', plant);
-  // };
-
   const renderPlantItem = ({ item }: { item: Plant }) => (
     <TouchableOpacity
       style={[styles.plantCard, { backgroundColor: colors.card }]}
-      onPress={() => {
-        // TODO: Navigate to plant details
-      }}
+      onPress={() => router.push(`/plantopedia/${item.id}`)}
     >
       <View style={styles.imageContainer}>
         {item.imageUrl ? (
@@ -104,7 +121,9 @@ export default function PlantopediaScreen() {
           <IconSymbol name="plus" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.plantName, { color: colors.text }]}>{capitalizeWords(item.plantName)}</Text>
+      <Text style={[styles.plantName, { color: colors.text }]}>
+        {capitalizeWords(item.plantName)}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -136,16 +155,16 @@ export default function PlantopediaScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <FlatList
-        data={plants}
-        renderItem={renderPlantItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
+  <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <FlatList
+      data={plants}
+      renderItem={renderPlantItem}
+      keyExtractor={(item) => item.id}
+      numColumns={2}
+      contentContainerStyle={styles.listContent}
+      showsVerticalScrollIndicator={false}
+    />
+  </View>
   );
 }
 
@@ -153,7 +172,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  listContent: {
+    listContent: {
     padding: 16,
     paddingTop: 64,
     paddingBottom: Platform.OS === 'ios' ? 100 : 80,
@@ -169,10 +188,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  imageContainer: {
+    imageContainer: {
     position: 'relative',
   },
-  plantImage: {
+    plantImage: {
     width: '100%',
     height: 150,
   },

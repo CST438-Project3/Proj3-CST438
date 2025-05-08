@@ -196,7 +196,8 @@ export default function PlantDetailsScreen() {
                     Duration: {plant.duration.charAt(0).toUpperCase() + plant.duration.slice(1)}
                     </Text>
                 </View>
-)}              
+              )}              
+
                 {plant.growthRate && (
                 <View style={styles.iconRow}>
                     <Ionicons name="leaf-outline" size={18} color={colors.text} />
@@ -282,8 +283,8 @@ export default function PlantDetailsScreen() {
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </SafeAreaView>
-      </ImageBackground>
+          </SafeAreaView>
+        </ImageBackground>
     </View>
   );
 }
