@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -14,6 +15,8 @@ import { useTheme } from '@/lib/ThemeContext';
 import { ThemedText } from '@/components/ThemedText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ImageBackground } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import openai from '@/lib/openai';
 
 export default function AnalyzeScreen() {
   const { colors } = useTheme();
@@ -79,15 +82,66 @@ export default function AnalyzeScreen() {
 
     try {
       setAnalyzing(true);
-      // TODO: Implement OpenAI API call here
-      // For now, we'll simulate a response
-      setTimeout(() => {
-        setAnalysis("This appears to be a Monstera Deliciosa. It's a tropical plant that thrives in bright, indirect light. Water when the top inch of soil is dry, and mist the leaves occasionally to maintain humidity. This plant prefers temperatures between 65-85°F and benefits from regular fertilization during the growing season.");
-        setAnalyzing(false);
-      }, 2000);
+      
+      // Convert image to base64
+      const base64Image = await FileSystem.readAsStringAsync(image, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Prepare the image for OpenAI
+      const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+
+      // Call OpenAI API
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `You are a plant identification and care assistant. Analyze the attached plant image and provide a structured, professional report with the following sections:
+
+Plant Species/Type:
+- Scientific name
+- Common names
+
+Care Requirements:
+- Light
+- Water
+- Temperature
+
+Common Issues and Solutions:
+- List common problems and how to address them
+
+Growth Characteristics:
+- Type
+- Height
+- Spread
+- Flowers
+- Foliage
+
+Do NOT use markdown, headings, or conversational language. Do NOT include phrases like 'Certainly' or 'The plant in the image is...'. Present each section with a clear label, followed by bullet points or short sentences. Keep the format consistent and neutral, suitable for a care report.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: imageUrl
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000
+      });
+
+      // Extract and set the analysis
+      const analysisText = response.choices[0].message.content;
+      setAnalysis(analysisText);
     } catch (error) {
       console.error('Analysis error:', error);
-      Alert.alert('Error', 'Failed to analyze image');
+      Alert.alert('Error', 'Failed to analyze image. Please try again.');
+    } finally {
       setAnalyzing(false);
     }
   };
@@ -151,12 +205,18 @@ export default function AnalyzeScreen() {
 
             {analysis && (
               <View style={[styles.analysisContainer, { backgroundColor: colors.card }]}>
-                <ThemedText style={[styles.analysisTitle, { color: colors.text }]}>
-                  Analysis Results
-                </ThemedText>
-                <ThemedText style={[styles.analysisText, { color: colors.text }]}>
-                  {analysis}
-                </ThemedText>
+                <ThemedText style={[styles.analysisTitle, { color: colors.text }]}>Analysis Report</ThemedText>
+                {analysis.split(/\n{2,}/).map((section, idx) => {
+                  const [header, ...content] = section.split('\n');
+                  return (
+                    <View key={idx} style={{ marginBottom: 12 }}>
+                      <Text style={{ fontWeight: 'bold', fontSize: 16, color: colors.text, marginBottom: 4 }}>{header.trim()}</Text>
+                      {content.join('\n').split(/\n|•|-/).filter(line => line.trim()).map((line, i) => (
+                        <Text key={i} style={{ color: colors.text, marginLeft: 12, marginBottom: 2, fontSize: 15 }}>• {line.trim()}</Text>
+                      ))}
+                    </View>
+                  );
+                })}
               </View>
             )}
           </ScrollView>
